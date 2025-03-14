@@ -8,6 +8,7 @@ import SabotageEvents from '@/components/SabotageEvents';
 import ConfirmExit from '@/components/ConfirmExit';
 import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
+import FocusMode from '@/components/FocusMode';
 import { Brain, Coffee, Calendar, Sparkles } from 'lucide-react';
 
 const MomentoApp: React.FC = () => {
@@ -68,6 +69,11 @@ const MomentoApp: React.FC = () => {
     };
   }, [attemptToExit]);
   
+  // Update the title to include "The To-Do App That Judges You Like Your Mom"
+  useEffect(() => {
+    document.title = "Momento - The To-Do App That Judges You Like Your Mom";
+  }, []);
+  
   return (
     <div className="min-h-screen bg-[#f0f0f0] p-6 cursor-default">
       <InstallAppBanner />
@@ -83,7 +89,7 @@ const MomentoApp: React.FC = () => {
             <span className="inline-block animate-float" style={{ animationDelay: '0.5s' }}>t</span>
             <span className="inline-block animate-float" style={{ animationDelay: '0.6s' }}>o</span>
           </h1>
-          <p className="text-center font-bold text-lg mt-2">The To-Do App That Judges You</p>
+          <p className="text-center font-bold text-lg mt-2">The To-Do App That Judges You Like Your Mom</p>
           
           {/* Mom Mood Meter */}
           <div className="mt-4">
@@ -109,6 +115,11 @@ const MomentoApp: React.FC = () => {
               >
                 Start Being Productive
               </button>
+            </div>
+            
+            {/* Focus Mode Button - Available in welcome screen */}
+            <div className="mt-8">
+              <FocusMode />
             </div>
             
             {/* Fun Neubrutalism UI Elements */}
@@ -151,7 +162,16 @@ const MomentoApp: React.FC = () => {
           </div>
         )}
         
-        {stage === 'taskInput' && <TaskInput />}
+        {stage === 'taskInput' && (
+          <>
+            <TaskInput />
+            {/* Focus Mode Button - Also available in task input screen */}
+            <div className="flex justify-center mt-6">
+              <FocusMode />
+            </div>
+          </>
+        )}
+        
         {stage === 'fakeChoice' && <FakeChoice />}
         
         {/* Sabotage events are always present but conditionally displayed */}

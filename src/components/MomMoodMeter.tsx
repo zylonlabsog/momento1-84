@@ -9,8 +9,9 @@ const MomMoodMeter: React.FC = () => {
   const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Smile className="w-5 h-5" />);
   const [moodDirection, setMoodDirection] = useState<'improving' | 'worsening' | 'stable'>('stable');
   const [prevMood, setPrevMood] = useState<number>(50);
+  const [pulseEffect, setPulseEffect] = useState(false);
   
-  // Calculate mom's mood based on various factors
+  // Calculate mom's mood based on various factors - now more real-time
   useEffect(() => {
     const triggeredEvents = sabotageEvents.filter(event => event.triggered).length;
     const percentTriggered = (triggeredEvents / sabotageEvents.length) * 100;
@@ -18,14 +19,20 @@ const MomMoodMeter: React.FC = () => {
     // Mom gets progressively more annoyed as more events are triggered
     const baseMood = Math.max(0, 80 - percentTriggered);
     
-    // Factor in the anger level from the context
-    const newMood = Math.max(0, Math.min(100, baseMood - (momAngerLevel * 0.5)));
+    // Factor in the anger level from the context - more weight to make it real-time
+    const newMood = Math.max(0, Math.min(100, baseMood - (momAngerLevel * 0.7)));
     
     // Determine if mood is improving or worsening
-    if (newMood > prevMood + 3) {
+    if (newMood > prevMood + 2) {
       setMoodDirection('improving');
-    } else if (newMood < prevMood - 3) {
+      // Pulse effect when mood improves significantly
+      setPulseEffect(true);
+      setTimeout(() => setPulseEffect(false), 1000);
+    } else if (newMood < prevMood - 2) {
       setMoodDirection('worsening');
+      // Pulse effect when mood worsens significantly
+      setPulseEffect(true);
+      setTimeout(() => setPulseEffect(false), 1000);
     } else {
       setMoodDirection('stable');
     }
@@ -33,7 +40,7 @@ const MomMoodMeter: React.FC = () => {
     setPrevMood(momMood);
     setMomMood(newMood);
     
-    // Update mood icon based on current mood
+    // Update mood icon based on current mood - more fine-grained now
     if (newMood < 20) {
       setMoodIcon(<HeartCrack className="w-5 h-5 text-momento-red animate-pulse" />);
     } else if (newMood < 40) {
@@ -46,13 +53,13 @@ const MomMoodMeter: React.FC = () => {
       setMoodIcon(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
     }
     
-    // Random mood swings - less pronounced but more frequent
+    // More subtle random mood swings to make the meter feel alive
     const moodSwingInterval = setInterval(() => {
       setMomMood(prevMood => {
-        const swing = Math.random() * 6 - 3; // -3 to +3
+        const swing = Math.random() * 4 - 2; // -2 to +2
         return Math.max(0, Math.min(100, prevMood + swing));
       });
-    }, 3000);
+    }, 2000); // More frequent updates
     
     return () => clearInterval(moodSwingInterval);
   }, [sabotageEvents, momAngerLevel]);
@@ -67,19 +74,20 @@ const MomMoodMeter: React.FC = () => {
   // Get label based on mood
   const getMoodLabel = () => {
     if (momMood < 20) return 'Furious';
-    if (momMood < 40) return 'Disappointed';
-    if (momMood < 60) return 'Judging You';
-    if (momMood < 80) return 'Tolerating You';
-    return 'Almost Proud';
+    if (momMood < 35) return 'Disappointed';
+    if (momMood < 50) return 'Judging You';
+    if (momMood < 70) return 'Tolerating You';
+    if (momMood < 85) return 'Almost Proud';
+    return 'Momentarily Proud';
   };
   
   // Direction indicator
   const getMoodDirectionIndicator = () => {
     if (moodDirection === 'improving') {
-      return <span className="text-momento-green text-xs ml-1">↑</span>;
+      return <span className="text-momento-green text-xs ml-1 animate-pulse">↑</span>;
     }
     if (moodDirection === 'worsening') {
-      return <span className="text-momento-red text-xs ml-1">↓</span>;
+      return <span className="text-momento-red text-xs ml-1 animate-pulse">↓</span>;
     }
     return null;
   };
@@ -90,7 +98,7 @@ const MomMoodMeter: React.FC = () => {
         <span className="flex items-center">
           Mom's Mood: {moodIcon}
         </span>
-        <span className={`px-2 py-1 ${getMoodColor()} border-2 border-black flex items-center`}>
+        <span className={`px-2 py-1 ${getMoodColor()} border-2 border-black flex items-center ${pulseEffect ? 'animate-pulse' : ''}`}>
           {getMoodLabel()}
           {getMoodDirectionIndicator()}
         </span>
@@ -98,7 +106,7 @@ const MomMoodMeter: React.FC = () => {
       
       <div className="w-full h-4 bg-white border-2 border-black overflow-hidden relative">
         <div 
-          className={`h-full ${getMoodColor()} transition-all duration-500`}
+          className={`h-full ${getMoodColor()} transition-all duration-300`}
           style={{ width: `${momMood}%` }}
         ></div>
         
