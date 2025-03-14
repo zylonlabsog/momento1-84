@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
 import { toast } from '@/components/ui/use-toast';
@@ -13,6 +12,14 @@ const CRITICISMS: MomCriticism[] = [
   { text: "Your ambition is adorable but unrealistic.", severity: 'medium' },
   { text: "Oh honey, we both know this isn't happening.", severity: 'harsh' },
   { text: "This is why you never finish anything.", severity: 'harsh' },
+  { text: "My neighbor's kid finishes 10 tasks before breakfast.", severity: 'medium' },
+  { text: "That's it? That's the big plan for today?", severity: 'mild' },
+  { text: "You call that a task? I call it a joke.", severity: 'harsh' },
+  { text: "I didn't raise you to be this unproductive.", severity: 'medium' },
+  { text: "When I was your age, I juggled three jobs AND raised you.", severity: 'harsh' },
+  { text: "Your cousin would have finished this already.", severity: 'medium' },
+  { text: "Are you allergic to actual work?", severity: 'harsh' },
+  { text: "This task will join the graveyard of your abandoned projects.", severity: 'medium' },
 ];
 
 const SABOTAGE_EVENTS: SabotageEvent[] = [
@@ -46,9 +53,32 @@ const SABOTAGE_EVENTS: SabotageEvent[] = [
     message: "99% Completed... Error: Productivity Not Found. Try Again.",
     triggered: false
   },
+  {
+    id: 'comparison1',
+    type: 'reminder',
+    message: "Your friend just got promoted while you're sitting here.",
+    triggered: false
+  },
+  {
+    id: 'phoneCall1',
+    type: 'reminder',
+    message: "Did you call your grandma yet? She's been waiting.",
+    triggered: false
+  },
+  {
+    id: 'jumpScare2',
+    type: 'jumpScare',
+    message: "HEY! EYES ON THE SCREEN! FOCUS!",
+    triggered: false
+  },
+  {
+    id: 'fakeProgress2',
+    type: 'fakeProgress',
+    message: "Task almost done... Oops, server crash. Start over!",
+    triggered: false
+  },
 ];
 
-// Create the context with a default undefined value
 const MomentoContext = createContext<MomentoContextType | undefined>(undefined);
 
 export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,23 +88,19 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
 
-  // Function to trigger a random criticism
   const triggerCriticism = () => {
     const randomIndex = Math.floor(Math.random() * criticisms.length);
     setSelectedCriticism(criticisms[randomIndex]);
     
-    // Reset after showing criticism
     setTimeout(() => {
       setTaskInput('');
     }, 2500);
   };
 
-  // Function to trigger a random sabotage event
   const triggerRandomSabotage = () => {
     const availableEvents = sabotageEvents.filter(event => !event.triggered);
     
     if (availableEvents.length === 0) {
-      // Reset all events if all have been triggered
       setSabotageEvents(sabotageEvents.map(event => ({ ...event, triggered: false })));
       return;
     }
@@ -82,21 +108,17 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const randomIndex = Math.floor(Math.random() * availableEvents.length);
     const selectedEvent = availableEvents[randomIndex];
     
-    // Mark this event as triggered
     setSabotageEvents(sabotageEvents.map(event => 
       event.id === selectedEvent.id ? { ...event, triggered: true } : event
     ));
     
-    // Display the sabotage event
     toast({
       title: "Mom Says:",
       description: selectedEvent.message,
       duration: 5000,
     });
     
-    // If it's a jumpScare, also play a sound
     if (selectedEvent.type === 'jumpScare') {
-      // We'd add sound here if implementing sound
       document.body.classList.add('animate-shake');
       setTimeout(() => {
         document.body.classList.remove('animate-shake');
@@ -104,18 +126,16 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Set up random sabotage events
   useEffect(() => {
     const sabotageInterval = setInterval(() => {
       if (stage !== 'welcome') {
         triggerRandomSabotage();
       }
-    }, 30000); // Every 30 seconds
+    }, 30000);
     
     return () => clearInterval(sabotageInterval);
   }, [stage]);
 
-  // Reset function
   const resetApp = () => {
     setStage('welcome');
     setTaskInput('');
@@ -139,7 +159,6 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return <MomentoContext.Provider value={value}>{children}</MomentoContext.Provider>;
 };
 
-// Custom hook to use the Momento context
 export const useMomento = (): MomentoContextType => {
   const context = useContext(MomentoContext);
   if (context === undefined) {

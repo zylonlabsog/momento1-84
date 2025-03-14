@@ -15,6 +15,8 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
 }) => {
   const { stage } = useMomento();
   const [animation, setAnimation] = useState<string>('animate-popup');
+  const [blinkEyes, setBlinkEyes] = useState<boolean>(false);
+  const [emote, setEmote] = useState<string>('');
   
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -33,6 +35,23 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
     } else {
       setAnimation('animate-float');
     }
+    
+    // Random eye blinking
+    const blinkInterval = setInterval(() => {
+      setBlinkEyes(true);
+      setTimeout(() => setBlinkEyes(false), 200);
+    }, Math.random() * 3000 + 2000);
+    
+    // Random emotional state
+    const emotionInterval = setInterval(() => {
+      const emotions = ['', 'annoyed', 'judgmental', 'disappointed'];
+      setEmote(emotions[Math.floor(Math.random() * emotions.length)]);
+    }, 5000);
+    
+    return () => {
+      clearInterval(blinkInterval);
+      clearInterval(emotionInterval);
+    };
   }, [stage, speaking]);
 
   return (
@@ -44,14 +63,33 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       )}
       
       <div 
-        className={`${sizeClasses[size]} ${animation} rounded-full bg-momento-pink border-4 border-black flex items-center justify-center overflow-hidden`}
+        className={`${sizeClasses[size]} ${animation} rounded-full bg-momento-pink border-4 border-black flex items-center justify-center overflow-hidden relative`}
       >
+        {/* Aura effect for mom's judgement */}
+        {emote === 'judgmental' && (
+          <div className="absolute inset-0 bg-momento-red opacity-20 animate-pulse rounded-full" />
+        )}
+        
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Basic mom avatar face */}
           <div className="w-3/4 h-3/4 relative">
             {/* Eyes */}
-            <div className="absolute top-1/4 left-1/4 w-1/4 h-1/4 bg-black rounded-full"></div>
-            <div className="absolute top-1/4 right-1/4 w-1/4 h-1/4 bg-black rounded-full"></div>
+            <div className={`absolute top-1/4 left-1/4 w-1/4 h-${blinkEyes ? '0.5' : '1/4'} bg-black rounded-full transition-all duration-100`}></div>
+            <div className={`absolute top-1/4 right-1/4 w-1/4 h-${blinkEyes ? '0.5' : '1/4'} bg-black rounded-full transition-all duration-100`}></div>
+            
+            {/* Eyebrows - different based on mood */}
+            {emote === 'annoyed' && (
+              <>
+                <div className="absolute top-[15%] left-[20%] w-1/4 h-1 bg-black rotate-[-20deg]"></div>
+                <div className="absolute top-[15%] right-[20%] w-1/4 h-1 bg-black rotate-[20deg]"></div>
+              </>
+            )}
+            {emote === 'disappointed' && (
+              <>
+                <div className="absolute top-[15%] left-[20%] w-1/4 h-1 bg-black rotate-[10deg]"></div>
+                <div className="absolute top-[15%] right-[20%] w-1/4 h-1 bg-black rotate-[-10deg]"></div>
+              </>
+            )}
             
             {/* Mouth - different based on stage */}
             {stage === 'guiltTrip' ? (
@@ -60,11 +98,28 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
             ) : speaking ? (
               // Open mouth when speaking
               <div className="absolute bottom-1/4 left-1/4 w-1/2 h-1/4 bg-black rounded-full"></div>
+            ) : emote === 'annoyed' ? (
+              // Annoyed mouth
+              <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform rotate-[-12deg]"></div>
+            ) : emote === 'disappointed' ? (
+              // Disappointed mouth
+              <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform rotate-[-20deg]"></div>
             ) : (
               // Default smirk
               <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform -rotate-6"></div>
             )}
           </div>
+        </div>
+        
+        {/* Cool interactive element - mom's hair */}
+        <div className="absolute top-[-5px] left-0 right-0 flex justify-center">
+          {[...Array(5)].map((_, i) => (
+            <div 
+              key={i} 
+              className="w-3 h-6 bg-black rounded-t-full mx-[1px] animate-float"
+              style={{ animationDelay: `${i * 0.1}s` }}
+            ></div>
+          ))}
         </div>
       </div>
     </div>

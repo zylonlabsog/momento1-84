@@ -1,6 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
+import { Sparkles } from 'lucide-react';
 
 const TaskInput: React.FC = () => {
   const { 
@@ -14,6 +16,8 @@ const TaskInput: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [showCriticism, setShowCriticism] = useState(false);
   const [showEncouragement, setShowEncouragement] = useState(false);
+  const [typingSpeed, setTypingSpeed] = useState<'slow' | 'normal' | 'fast'>('normal');
+  const [showSparkles, setShowSparkles] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,6 +26,10 @@ const TaskInput: React.FC = () => {
     if (taskInput.trim() !== '') {
       setShowCriticism(true);
       triggerCriticism();
+      
+      // Show sparkles animation on submit
+      setShowSparkles(true);
+      setTimeout(() => setShowSparkles(false), 1000);
       
       setTimeout(() => {
         setShowCriticism(false);
@@ -34,6 +42,24 @@ const TaskInput: React.FC = () => {
       }, 6000);
     }
   };
+
+  // Judge typing speed for extra psychological pressure
+  useEffect(() => {
+    if (isInputFocused) {
+      const interval = setInterval(() => {
+        const lastTypedTime = Date.now();
+        if (lastTypedTime - lastTypedTime > 3000) {
+          setTypingSpeed('slow');
+        } else if (lastTypedTime - lastTypedTime < 500) {
+          setTypingSpeed('fast');
+        } else {
+          setTypingSpeed('normal');
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [isInputFocused, taskInput]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -61,6 +87,25 @@ const TaskInput: React.FC = () => {
                 placeholder="Enter your task here..."
                 className={`neubrutalism-input ${isInputFocused ? 'animate-jitter' : ''}`}
               />
+              
+              {isInputFocused && typingSpeed === 'slow' && (
+                <div className="absolute right-[-60px] top-2">
+                  <MomAvatar size="sm" message="Type faster!" />
+                </div>
+              )}
+              
+              {isInputFocused && typingSpeed === 'fast' && (
+                <div className="absolute right-[-60px] top-2">
+                  <MomAvatar size="sm" message="Slow down, you'll make mistakes!" />
+                </div>
+              )}
+              
+              {/* Cool sparkles effect when submitting */}
+              {showSparkles && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles size={50} className="text-momento-pink animate-spin" />
+                </div>
+              )}
             </div>
             
             <button 
