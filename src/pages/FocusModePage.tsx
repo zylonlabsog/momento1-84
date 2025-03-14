@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
 import { toast } from '@/components/ui/use-toast';
@@ -18,6 +17,8 @@ const FocusModePage: React.FC = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
+  const [adTimeElapsed, setAdTimeElapsed] = useState(0);
+  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const momStories = [
     "When I was your age, I studied 12 hours a day without breaks...",
@@ -48,6 +49,9 @@ const FocusModePage: React.FC = () => {
     const newAngerLevel = Math.min(100, momAngerLevel + 15);
     setMomAngerLevel(newAngerLevel);
     
+    // Pause the timer when mom story appears
+    setIsTimerRunning(false);
+    
     // Play nagging sound or effect
     confetti({
       particleCount: 30,
@@ -75,6 +79,64 @@ const FocusModePage: React.FC = () => {
     });
   }, [momAngerLevel, setMomAngerLevel]);
 
+  // Handle aggressive ad display and mom story popup after 30 seconds
+  useEffect(() => {
+    if (!isTimerRunning) {
+      // Clear any existing ad timer
+      if (adTimerRef.current) {
+        clearInterval(adTimerRef.current);
+        adTimerRef.current = null;
+      }
+      setAdTimeElapsed(0);
+      return;
+    }
+
+    // Initial ad after 20 seconds of starting
+    const initialAdTimer = setTimeout(() => {
+      if (isTimerRunning) {
+        showRandomAd();
+        setAdTimeElapsed(0);
+        
+        // Start the 5-second ad interval
+        adTimerRef.current = setInterval(() => {
+          setAdTimeElapsed(prev => {
+            const newTime = prev + 5;
+            
+            // Show a new ad every 5 seconds
+            showRandomAd();
+            
+            // After 30 seconds of ads, pause timer and show mom story
+            if (newTime >= 30) {
+              // Clear the interval
+              if (adTimerRef.current) {
+                clearInterval(adTimerRef.current);
+                adTimerRef.current = null;
+              }
+              
+              // Close any open ad
+              setShowAd(false);
+              
+              // Show mom story and pause timer
+              showRandomMomStory();
+              setAdTimeElapsed(0);
+              return 0;
+            }
+            
+            return newTime;
+          });
+        }, 5000);
+      }
+    }, 20000);
+    
+    return () => {
+      clearTimeout(initialAdTimer);
+      if (adTimerRef.current) {
+        clearInterval(adTimerRef.current);
+        adTimerRef.current = null;
+      }
+    };
+  }, [isTimerRunning, showRandomAd, showRandomMomStory]);
+
   // Handle breathing animation
   useEffect(() => {
     if (!isTimerRunning) return;
@@ -92,18 +154,13 @@ const FocusModePage: React.FC = () => {
     return () => clearInterval(breatheTimer);
   }, [isTimerRunning, breathePhase]);
 
-  // Focus timer and random distractions
+  // Focus timer
   useEffect(() => {
     if (!isTimerRunning) return;
     
     // Timer for tracking focus duration
     const focusTimer = setInterval(() => {
       setFocusSeconds(prevSeconds => prevSeconds + 1);
-      
-      // Randomly trigger distractions/notifications (10% chance every 15 seconds)
-      if (focusSeconds > 0 && focusSeconds % 15 === 0 && Math.random() < 0.1) {
-        triggerRandomSabotage();
-      }
       
       // Improve mom's mood slightly as you focus (every 30 seconds)
       if (focusSeconds > 0 && focusSeconds % 30 === 0) {
@@ -112,26 +169,10 @@ const FocusModePage: React.FC = () => {
       }
     }, 1000);
     
-    // Random mom story distraction (20% chance every 45 seconds)
-    const distractionTimer = setInterval(() => {
-      if (Math.random() < 0.2) {
-        showRandomMomStory();
-      }
-    }, 45000);
-    
-    // Random advertisement (25% chance every 60 seconds)
-    const adTimer = setInterval(() => {
-      if (Math.random() < 0.25) {
-        showRandomAd();
-      }
-    }, 60000);
-    
     return () => {
       clearInterval(focusTimer);
-      clearInterval(distractionTimer);
-      clearInterval(adTimer);
     };
-  }, [isTimerRunning, focusSeconds, momAngerLevel, showRandomMomStory, triggerRandomSabotage, showRandomAd]);
+  }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel]);
 
   // Notification system
   useEffect(() => {
@@ -188,11 +229,6 @@ const FocusModePage: React.FC = () => {
         description: "Mom will be watching your progress...",
         duration: 3000,
       });
-
-      // Show an ad right at the start for maximum annoyance
-      setTimeout(() => {
-        showRandomAd();
-      }, 10000);
     }
   };
 
@@ -202,6 +238,13 @@ const FocusModePage: React.FC = () => {
     setDistractionCount(0);
     setBreatheCount(0);
     setBreathePhase('inhale');
+    setAdTimeElapsed(0);
+    
+    // Clear any existing ad timer
+    if (adTimerRef.current) {
+      clearInterval(adTimerRef.current);
+      adTimerRef.current = null;
+    }
     
     // Small confetti burst when resetting
     confetti({
@@ -276,6 +319,18 @@ const FocusModePage: React.FC = () => {
     toast({
       title: "Ad Triggered",
       description: "Mom needs to pay her bills somehow!",
+      duration: 3000,
+    });
+  };
+
+  // Function to manually trigger mom story (for testing)
+  const forceShowMomStory = () => {
+    setIsTimerRunning(false);
+    showRandomMomStory();
+    
+    toast({
+      title: "Mom Story Triggered",
+      description: "Mom has lots of wisdom to share!",
       duration: 3000,
     });
   };
@@ -359,6 +414,21 @@ const FocusModePage: React.FC = () => {
                     ></div>
                   </div>
                 </div>
+                
+                {isTimerRunning && adTimeElapsed > 0 && (
+                  <div>
+                    <div className="flex justify-between text-sm font-bold mb-1">
+                      <span>Ad Marathon</span>
+                      <span>{adTimeElapsed}/30s</span>
+                    </div>
+                    <div className="h-4 bg-gray-200 border-2 border-black">
+                      <div 
+                        className="h-full bg-momento-yellow transition-all"
+                        style={{ width: `${(adTimeElapsed / 30) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -404,7 +474,15 @@ const FocusModePage: React.FC = () => {
                   className="neubrutalism-button w-full bg-momento-green text-black flex items-center justify-center"
                 >
                   <Focus className="mr-2 w-5 h-5" /> 
-                  Show Ad (Test)
+                  Show Ad
+                </button>
+                
+                <button 
+                  onClick={forceShowMomStory}
+                  className="neubrutalism-button w-full bg-momento-blue text-black flex items-center justify-center"
+                >
+                  <Focus className="mr-2 w-5 h-5" /> 
+                  Show Mom Story
                 </button>
               </div>
             </div>

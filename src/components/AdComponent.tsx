@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toast } from '@/components/ui/use-toast';
@@ -10,6 +10,7 @@ interface AdComponentProps {
 
 const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
   const [adIndex] = useState(() => Math.floor(Math.random() * 5));
+  const [closingIn, setClosingIn] = useState<number | null>(null);
   
   const adTemplates = [
     {
@@ -40,6 +41,26 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
   ];
 
   const currentAd = adTemplates[adIndex];
+
+  // Occasionally show a fake "close in X seconds" countdown
+  useEffect(() => {
+    if (Math.random() > 0.7) {
+      setClosingIn(5);
+      
+      const interval = setInterval(() => {
+        setClosingIn(prev => {
+          if (prev === null) return null;
+          if (prev <= 1) {
+            clearInterval(interval);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, []);
 
   const handleCloseAd = () => {
     // Spawn confetti when closing an ad
@@ -76,15 +97,50 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
     onClose();
   };
 
+  const moveCloseButton = (e: React.MouseEvent) => {
+    // 25% chance the close button moves away when hovered
+    if (Math.random() < 0.25) {
+      const button = e.currentTarget as HTMLButtonElement;
+      const container = button.parentElement?.parentElement;
+      
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        
+        // Random position within the container that's not overlapping the current position
+        let newLeft = Math.random() * (containerRect.width - buttonRect.width);
+        let newTop = Math.random() * (containerRect.height - buttonRect.height);
+        
+        // Ensure button stays within the container
+        newLeft = Math.max(0, Math.min(newLeft, containerRect.width - buttonRect.width));
+        newTop = Math.max(0, Math.min(newTop, containerRect.height - buttonRect.height));
+        
+        button.style.position = 'absolute';
+        button.style.left = `${newLeft}px`;
+        button.style.top = `${newTop}px`;
+      }
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 animate-popup">
-      <div className={`neubrutalism-box ${currentAd.color} p-6 max-w-md w-full`}>
+      <div className={`neubrutalism-box ${currentAd.color} p-6 max-w-md w-full relative`}>
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-black uppercase">{currentAd.title}</h3>
-          <button onClick={handleCloseAd} className="bg-white border-4 border-black p-2">
+          <button 
+            onClick={handleCloseAd} 
+            onMouseEnter={moveCloseButton}
+            className="bg-white border-4 border-black p-2 z-10"
+          >
             <X size={20} />
           </button>
         </div>
+        
+        {closingIn !== null && (
+          <div className="absolute top-2 left-2 text-xs font-bold bg-white px-2 py-1 border-2 border-black">
+            Close in {closingIn}s
+          </div>
+        )}
         
         <div className="neubrutalism-box bg-white p-4 mb-6">
           <div className="h-40 flex items-center justify-center border-2 border-black">
