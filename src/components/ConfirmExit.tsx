@@ -44,6 +44,10 @@ const ConfirmExit: React.FC = () => {
     }, 3000);
   };
 
+  const handleCloseClick = () => {
+    closeExitConfirm();
+  };
+
   const glowEffectStyle = {
     boxShadow: showCoolEffect ? '0 0 20px rgba(255, 97, 216, 0.8), 0 0 30px rgba(255, 97, 216, 0.6), 0 0 40px rgba(255, 97, 216, 0.4)' : 'none',
     transition: 'box-shadow 0.3s ease-out'
@@ -58,8 +62,9 @@ const ConfirmExit: React.FC = () => {
           </AlertDialogTitle>
           {!showExitMessage && (
             <button 
-              onClick={closeExitConfirm}
+              onClick={handleCloseClick}
               className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors"
+              aria-label="Close dialog"
             >
               <X size={16} />
             </button>
