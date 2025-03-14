@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
@@ -30,10 +29,10 @@ const FocusMode: React.FC = () => {
     if (showFocusMode) {
       // Timer for focus tracking
       const focusTimer = setInterval(() => {
-        setFocusSeconds(prev => prev + 1);
+        setFocusSeconds(prevSeconds => prevSeconds + 1);
         
         // Improve mom's mood slightly as you focus
-        if (prev % 10 === 0) {
+        if (focusSeconds % 10 === 0) {
           setMomAngerLevel(Math.max(0, momAngerLevel - 1));
         }
       }, 1000);
@@ -84,7 +83,7 @@ const FocusMode: React.FC = () => {
         clearInterval(distractionTimer);
       };
     }
-  }, [showFocusMode, distractionCount, momAngerLevel, triggerRandomSabotage, setMomAngerLevel, momStories.length]);
+  }, [showFocusMode, distractionCount, momAngerLevel, triggerRandomSabotage, setMomAngerLevel, momStories.length, focusSeconds]);
 
   const handleStartFocus = () => {
     setShowFocusMode(true);
