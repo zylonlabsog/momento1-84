@@ -6,6 +6,7 @@ import { toast } from '@/components/ui/use-toast';
 import { X, Focus, Clock, Zap, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
+import AdComponent from '@/components/AdComponent';
 
 const FocusModePage: React.FC = () => {
   const { triggerRandomSabotage, momAngerLevel, setMomAngerLevel } = useMomento();
@@ -16,6 +17,7 @@ const FocusModePage: React.FC = () => {
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
 
   const momStories = [
     "When I was your age, I studied 12 hours a day without breaks...",
@@ -26,6 +28,10 @@ const FocusModePage: React.FC = () => {
     "Are you even trying? This is why you'll never succeed in life!",
     "Your brother finished his PhD at your age. What's your excuse?",
     "I'm not angry, I'm just disappointed in your lack of focus.",
+    "Back in my day, we didn't have fancy focus apps. We just focused!",
+    "Your sister is managing three kids and a full-time job. You can't even manage this?",
+    "I didn't raise you to be a quitter. But here we are...",
+    "This is why your father and I are disappointed in you.",
   ];
 
   // Calculate real-time progress
@@ -36,8 +42,11 @@ const FocusModePage: React.FC = () => {
     setShowMomStory(true);
     const newIndex = Math.floor(Math.random() * momStories.length);
     setCurrentStoryIndex(newIndex);
-    setDistractionCount(distractionCount + 1);
-    setMomAngerLevel(Math.min(100, momAngerLevel + 15));
+    setDistractionCount(prevCount => prevCount + 1);
+    
+    // Use direct value rather than callback function to avoid TypeScript errors
+    const newAngerLevel = Math.min(100, momAngerLevel + 15);
+    setMomAngerLevel(newAngerLevel);
     
     // Play nagging sound or effect
     confetti({
@@ -48,6 +57,24 @@ const FocusModePage: React.FC = () => {
     });
   }, [distractionCount, momAngerLevel, setMomAngerLevel, momStories.length]);
 
+  // Function to display an advertisement
+  const showRandomAd = useCallback(() => {
+    setShowAd(true);
+    setDistractionCount(prevCount => prevCount + 1);
+    
+    // Increase mom's anger when showing an ad (she's monetizing your focus time)
+    const newAngerLevel = Math.min(100, momAngerLevel + 5);
+    setMomAngerLevel(newAngerLevel);
+    
+    // Play ad appearance effect
+    confetti({
+      particleCount: 15,
+      spread: 50,
+      origin: { y: 0.3 },
+      colors: ['#00C6FF', '#FFD600']
+    });
+  }, [momAngerLevel, setMomAngerLevel]);
+
   // Handle breathing animation
   useEffect(() => {
     if (!isTimerRunning) return;
@@ -57,13 +84,13 @@ const FocusModePage: React.FC = () => {
       setBreathePhase(prev => {
         if (prev === 'inhale') return 'hold';
         if (prev === 'hold') return 'exhale';
-        setBreatheCount(breatheCount + 1); // Count completed breath cycles
+        setBreatheCount(prevCount => prevCount + 1); // Count completed breath cycles
         return 'inhale';
       });
     }, 2500);
     
     return () => clearInterval(breatheTimer);
-  }, [isTimerRunning, breathePhase, breatheCount]);
+  }, [isTimerRunning, breathePhase]);
 
   // Focus timer and random distractions
   useEffect(() => {
@@ -80,7 +107,8 @@ const FocusModePage: React.FC = () => {
       
       // Improve mom's mood slightly as you focus (every 30 seconds)
       if (focusSeconds > 0 && focusSeconds % 30 === 0) {
-        setMomAngerLevel(Math.max(0, momAngerLevel - 1));
+        const newAngerLevel = Math.max(0, momAngerLevel - 1);
+        setMomAngerLevel(newAngerLevel);
       }
     }, 1000);
     
@@ -91,11 +119,19 @@ const FocusModePage: React.FC = () => {
       }
     }, 45000);
     
+    // Random advertisement (25% chance every 60 seconds)
+    const adTimer = setInterval(() => {
+      if (Math.random() < 0.25) {
+        showRandomAd();
+      }
+    }, 60000);
+    
     return () => {
       clearInterval(focusTimer);
       clearInterval(distractionTimer);
+      clearInterval(adTimer);
     };
-  }, [isTimerRunning, focusSeconds, momAngerLevel, showRandomMomStory, triggerRandomSabotage]);
+  }, [isTimerRunning, focusSeconds, momAngerLevel, showRandomMomStory, triggerRandomSabotage, showRandomAd]);
 
   // Notification system
   useEffect(() => {
@@ -152,6 +188,11 @@ const FocusModePage: React.FC = () => {
         description: "Mom will be watching your progress...",
         duration: 3000,
       });
+
+      // Show an ad right at the start for maximum annoyance
+      setTimeout(() => {
+        showRandomAd();
+      }, 10000);
     }
   };
 
@@ -181,7 +222,8 @@ const FocusModePage: React.FC = () => {
     setShowMomStory(false);
     
     // Mom gets angrier when you dismiss her stories
-    setMomAngerLevel(Math.min(100, momAngerLevel + 10));
+    const newAngerLevel = Math.min(100, momAngerLevel + 10);
+    setMomAngerLevel(newAngerLevel);
     
     toast({
       title: "Mom is Offended",
@@ -196,6 +238,14 @@ const FocusModePage: React.FC = () => {
       origin: { y: 0.4, x: 0.5 },
       colors: ['#FF61D8'],
     });
+  };
+
+  const closeAd = () => {
+    setShowAd(false);
+    
+    // Mom gets a little less angry when you engage with her monetization
+    const newAngerLevel = Math.max(0, momAngerLevel - 5);
+    setMomAngerLevel(newAngerLevel);
   };
 
   // Format time as mm:ss
@@ -217,6 +267,17 @@ const FocusModePage: React.FC = () => {
     } else {
       return "Not bad... for you, I guess.";
     }
+  };
+
+  // Function to manually trigger an ad (for testing)
+  const forceShowAd = () => {
+    showRandomAd();
+    
+    toast({
+      title: "Ad Triggered",
+      description: "Mom needs to pay her bills somehow!",
+      duration: 3000,
+    });
   };
 
   return (
@@ -337,6 +398,14 @@ const FocusModePage: React.FC = () => {
                   <Focus className="mr-2 w-5 h-5" /> 
                   Test Notification
                 </button>
+                
+                <button 
+                  onClick={forceShowAd}
+                  className="neubrutalism-button w-full bg-momento-green text-black flex items-center justify-center"
+                >
+                  <Focus className="mr-2 w-5 h-5" /> 
+                  Show Ad (Test)
+                </button>
               </div>
             </div>
           </div>
@@ -427,6 +496,9 @@ const FocusModePage: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Advertisement popup */}
+      {showAd && <AdComponent onClose={closeAd} />}
     </div>
   );
 };
