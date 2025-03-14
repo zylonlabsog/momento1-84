@@ -1,9 +1,9 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
 import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription } from './ui/alert-dialog';
-import { X, Sparkles, XCircle, AlertTriangle } from 'lucide-react';
+import { X, Sparkles, XCircle, AlertTriangle, Star, FrownIcon } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 const ConfirmExit: React.FC = () => {
@@ -12,29 +12,62 @@ const ConfirmExit: React.FC = () => {
   const [moveCount, setMoveCount] = useState(0);
   const [showExitMessage, setShowExitMessage] = useState(false);
   const [showCoolEffect, setShowCoolEffect] = useState(false);
+  const [rotationDegree, setRotationDegree] = useState(0);
+  const [backgroundPosition, setBackgroundPosition] = useState(0);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Add a new animated background effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBackgroundPosition(prev => (prev + 1) % 360);
+    }, 50);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Add a button rotation effect
+  useEffect(() => {
+    if (moveCount >= 3) {
+      const rotateInterval = setInterval(() => {
+        setRotationDegree(prev => (prev + 5) % 360);
+      }, 200);
+      
+      return () => clearInterval(rotateInterval);
+    }
+  }, [moveCount]);
   
   const handleYesHover = () => {
     if (moveCount < 3) {
-      // Move the button in a random direction
-      const newX = Math.floor(Math.random() * 200) - 100;
-      const newY = Math.floor(Math.random() * 100) - 50;
+      // Add more dramatic movement
+      const newX = Math.floor(Math.random() * 250) - 125;
+      const newY = Math.floor(Math.random() * 150) - 75;
       setButtonPosition({ x: newX, y: newY });
       setMoveCount(prev => prev + 1);
 
-      // Add sparkle effect on hover
+      // Enhanced sparkle effect
       setShowCoolEffect(true);
       setTimeout(() => setShowCoolEffect(false), 500);
+      
+      // Add small confetti burst on each hover
+      confetti({
+        particleCount: 20,
+        spread: 50,
+        origin: { y: 0.6, x: 0.5 },
+        colors: ['#FFD600', '#FF61D8'],
+        disableForReducedMotion: true
+      });
     }
   };
   
   const handleActualExit = () => {
-    // Shoot confetti when user finally manages to click exit
+    // More elaborate confetti when user finally manages to click exit
     confetti({
-      particleCount: 150,
-      spread: 100,
+      particleCount: 200,
+      spread: 160,
       origin: { y: 0.5, x: 0.5 },
-      colors: ['#FF61D8', '#FFD600', '#00FF9E', '#00C6FF', '#FF4D4D']
+      colors: ['#FF61D8', '#FFD600', '#00FF9E', '#00C6FF', '#FF4D4D'],
+      scalar: 1.2,
+      shapes: ['circle', 'square']
     });
     
     setShowExitMessage(true);
@@ -46,6 +79,15 @@ const ConfirmExit: React.FC = () => {
 
   const handleCloseClick = () => {
     closeExitConfirm();
+    
+    // Add a small confetti burst when closing
+    confetti({
+      particleCount: 30,
+      spread: 70,
+      origin: { y: 0.2, x: 0.8 },
+      colors: ['#00C6FF', '#00FF9E'],
+      disableForReducedMotion: true
+    });
   };
 
   const glowEffectStyle = {
@@ -55,15 +97,23 @@ const ConfirmExit: React.FC = () => {
 
   return (
     <AlertDialog open={showExitConfirm} onOpenChange={closeExitConfirm}>
-      <AlertDialogContent className="neubrutalism-box bg-momento-red p-6 border-black">
+      <AlertDialogContent 
+        className="neubrutalism-box bg-momento-red p-6 border-black" 
+        style={{
+          backgroundImage: `linear-gradient(${backgroundPosition}deg, hsla(341,91%,68%,1) 0%, hsla(24,100%,83%,1) 100%)`,
+          backgroundSize: '400% 400%',
+        }}
+      >
         <div className="flex justify-between items-center mb-4">
-          <AlertDialogTitle className="text-2xl font-black text-white uppercase">
+          <AlertDialogTitle className="text-2xl font-black text-white uppercase flex items-center">
+            <Star className="w-6 h-6 mr-2 text-momento-yellow animate-pulse" />
             Are You Sure?
+            <Star className="w-6 h-6 ml-2 text-momento-yellow animate-pulse" style={{ animationDelay: '0.5s' }} />
           </AlertDialogTitle>
           {!showExitMessage && (
             <button 
               onClick={handleCloseClick}
-              className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors"
+              className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors transform hover:scale-110"
               aria-label="Close dialog"
             >
               <X size={16} />
@@ -77,11 +127,14 @@ const ConfirmExit: React.FC = () => {
         </AlertDialogDescription>
         
         {showExitMessage ? (
-          <div className="mb-6">
+          <div className="mb-6 animate-bounce">
             <MomAvatar 
               speaking={true} 
               message="You're so lazy! Always giving up before you even start. Typical."
             />
+            <div className="mt-4 flex justify-center">
+              <FrownIcon className="w-10 h-10 text-white animate-pulse" />
+            </div>
           </div>
         ) : (
           <>
@@ -92,12 +145,12 @@ const ConfirmExit: React.FC = () => {
                 interactive={true}
               />
               
-              {/* Cool decorative elements */}
+              {/* Enhanced decorative elements */}
               <div className="absolute top-2 right-2">
-                <Sparkles className="text-momento-yellow w-6 h-6 animate-pulse" />
+                <Sparkles className="text-momento-yellow w-8 h-8 animate-pulse" />
               </div>
               <div className="absolute bottom-2 left-2">
-                <Sparkles className="text-momento-pink w-6 h-6 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                <Sparkles className="text-momento-pink w-8 h-8 animate-pulse" style={{ animationDelay: '0.5s' }} />
               </div>
             </div>
             
@@ -106,7 +159,7 @@ const ConfirmExit: React.FC = () => {
                 ref={confirmButtonRef}
                 className="neubrutalism-button bg-momento-yellow relative overflow-hidden"
                 style={{
-                  transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
+                  transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px) rotate(${moveCount >= 3 ? rotationDegree : 0}deg)`,
                   transition: 'transform 0.2s ease-out',
                   ...glowEffectStyle
                 }}
@@ -134,9 +187,29 @@ const ConfirmExit: React.FC = () => {
           </div>
         )}
         
-        {/* Cool background effect */}
+        {/* Enhanced background effect with floating elements */}
         <div className="absolute -z-10 inset-0 overflow-hidden rounded-lg">
-          <div className="absolute -inset-[100px] bg-[linear-gradient(90deg,hsla(341,91%,68%,1)_0%,hsla(24,100%,83%,1)_100%)] opacity-30 blur-xl animate-[spin_8s_linear_infinite]"></div>
+          <div 
+            className="absolute -inset-[100px] opacity-30 blur-xl" 
+            style={{
+              background: `linear-gradient(${backgroundPosition}deg, hsla(341,91%,68%,1) 0%, hsla(24,100%,83%,1) 100%)`,
+              animation: 'spin 8s linear infinite'
+            }}
+          ></div>
+          
+          {/* Add floating elements in the background */}
+          {[...Array(6)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-10 h-10 rounded-full bg-white opacity-20"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animation: `float ${3 + Math.random() * 4}s ease-in-out infinite`,
+                animationDelay: `${i * 0.5}s`
+              }}
+            ></div>
+          ))}
         </div>
       </AlertDialogContent>
     </AlertDialog>
