@@ -14,7 +14,8 @@ const TaskInput: React.FC = () => {
     setStage,
     attemptToExit,
     calmMomDown,
-    setMomAngerLevel
+    setMomAngerLevel,
+    momAngerLevel
   } = useMomento();
   
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -63,7 +64,9 @@ const TaskInput: React.FC = () => {
     
     // Typing increases mom's anger slightly (she doesn't want you to be productive)
     if (keystrokeCount % 10 === 0) {
-      setMomAngerLevel(prev => Math.min(100, prev + 1));
+      // Fix: Instead of using a function, calculate the new value directly
+      const newAngerLevel = Math.min(100, momAngerLevel + 1);
+      setMomAngerLevel(newAngerLevel);
     }
   };
 
@@ -82,7 +85,9 @@ const TaskInput: React.FC = () => {
         } else if (timeSinceLastType < 500 && taskInput.length > 3) {
           setTypingSpeed('slow'); // REVERSED: When typing fast, we say "slow down"
           if (Math.random() > 0.8) {
-            setMomAngerLevel(prev => Math.min(100, prev + 2)); // Mom gets more annoyed with fast typing
+            // Fix: Instead of using a function, calculate the new value directly
+            const newAngerLevel = Math.min(100, momAngerLevel + 2);
+            setMomAngerLevel(newAngerLevel);
           }
         } else {
           setTypingSpeed('normal');
@@ -91,7 +96,7 @@ const TaskInput: React.FC = () => {
       
       return () => clearInterval(interval);
     }
-  }, [isInputFocused, lastKeyTime, taskInput, calmMomDown, setMomAngerLevel]);
+  }, [isInputFocused, lastKeyTime, taskInput, calmMomDown, setMomAngerLevel, momAngerLevel]);
 
   useEffect(() => {
     if (inputRef.current) {
