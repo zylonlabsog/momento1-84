@@ -5,10 +5,11 @@ import { toast } from '@/components/ui/use-toast';
 
 interface AdComponentProps {
   onClose: () => void;
+  adIndex?: number;
 }
 
-const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
-  const [adIndex] = useState(() => Math.floor(Math.random() * 5));
+const AdComponent: React.FC<AdComponentProps> = ({ onClose, adIndex: forcedAdIndex }) => {
+  const [adIndex] = useState(() => forcedAdIndex !== undefined ? forcedAdIndex : Math.floor(Math.random() * 5));
   const [closingIn, setClosingIn] = useState<number | null>(null);
   
   const adTemplates = [
@@ -62,8 +63,6 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
   }, []);
 
   const handleCloseAd = () => {
-    // Removed confetti
-    
     toast({
       title: "Mom Says:",
       description: "You didn't even click the ad! You're not studying anyway, now listen to my story!",
@@ -79,8 +78,6 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
       description: "I knew you couldn't resist! Back to work now.",
       duration: 3000,
     });
-    
-    // Removed confetti
     
     onClose();
   };

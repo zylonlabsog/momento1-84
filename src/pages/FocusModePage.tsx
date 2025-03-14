@@ -6,6 +6,13 @@ import { toast } from '@/components/ui/use-toast';
 import { X, Focus, Clock, Zap, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AdComponent from '@/components/AdComponent';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
+} from '@/components/ui/dialog';
 
 const FocusModePage: React.FC = () => {
   const { triggerRandomSabotage, momAngerLevel, setMomAngerLevel } = useMomento();
@@ -13,13 +20,25 @@ const FocusModePage: React.FC = () => {
   const [breathePhase, setBreathePhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [distractionCount, setDistractionCount] = useState(0);
   const [showMomStory, setShowMomStory] = useState(false);
-  const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
-  const adTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const momStoryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [adSequenceRunning, setAdSequenceRunning] = useState(false);
+  const [adSequenceComplete, setAdSequenceComplete] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const adTimersRef = useRef<NodeJS.Timeout[]>([]);
+
+  // Clear all timers function
+  const clearAllTimers = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    adTimersRef.current.forEach(timer => clearTimeout(timer));
+    adTimersRef.current = [];
+  };
 
   const momStories = [
     "When I was your age, I studied 12 hours a day without breaks...",
@@ -43,8 +62,12 @@ const FocusModePage: React.FC = () => {
   // Function to show a random mom story as a distraction
   const showRandomMomStory = useCallback(() => {
     setShowMomStory(true);
-    // Choose an index that includes "You are not studying anyway, now listen to my story..."
-    setCurrentStoryIndex(12); // Index of the "not studying anyway" message
+    // Choose the "not studying anyway" message
+    const storyIndex = momStories.findIndex(story => 
+      story.includes("You are not studying anyway, now listen to my story")
+    );
+    // Fallback to the last story if the specific one isn't found
+    const index = storyIndex !== -1 ? storyIndex : momStories.length - 1;
     setDistractionCount(prevCount => prevCount + 1);
     
     // Use direct value rather than callback function to avoid TypeScript errors
@@ -53,76 +76,56 @@ const FocusModePage: React.FC = () => {
     
     // Pause the timer when mom story appears
     setIsTimerRunning(false);
-    
-    // Removed confetti
-  }, [distractionCount, momAngerLevel, setMomAngerLevel]);
+  }, [momAngerLevel, setMomAngerLevel, momStories]);
 
   // Function to display an advertisement
-  const showRandomAd = useCallback(() => {
+  const showAdWithIndex = useCallback((index: number) => {
+    if (adSequenceComplete) return;
+    
+    setCurrentAdIndex(index);
     setShowAd(true);
     setDistractionCount(prevCount => prevCount + 1);
     
-    // Increase mom's anger when showing an ad (she's monetizing your focus time)
+    // Increase mom's anger level with each ad (she's monetizing your focus time)
     const newAngerLevel = Math.min(100, momAngerLevel + 5);
     setMomAngerLevel(newAngerLevel);
+  }, [momAngerLevel, setMomAngerLevel, adSequenceComplete]);
+
+  // Start the ad sequence
+  const startAdSequence = useCallback(() => {
+    if (adSequenceRunning || !isTimerRunning) return;
     
-    // Removed confetti
-  }, [momAngerLevel, setMomAngerLevel]);
-
-  // Handle ad display sequence and mom story popup
-  useEffect(() => {
-    if (!isTimerRunning) {
-      // Clear any existing timers
-      if (adTimerRef.current) {
-        clearInterval(adTimerRef.current);
-        adTimerRef.current = null;
-      }
-      if (momStoryTimerRef.current) {
-        clearTimeout(momStoryTimerRef.current);
-        momStoryTimerRef.current = null;
-      }
-      setCurrentAdIndex(0);
-      return;
-    }
-
+    setAdSequenceRunning(true);
+    setAdSequenceComplete(false);
+    clearAllTimers();
+    
     // Show first ad immediately
-    showRandomAd();
-    setCurrentAdIndex(1);
+    showAdWithIndex(0);
     
     // Show second ad after 6 seconds
-    const secondAdTimer = setTimeout(() => {
-      setShowAd(false); // Close the first ad
-      setTimeout(() => {
-        showRandomAd(); // Show the second ad
-        setCurrentAdIndex(2);
-      }, 100);
+    const timer1 = setTimeout(() => {
+      setShowAd(false);
+      setTimeout(() => showAdWithIndex(1), 200);
     }, 6000);
+    adTimersRef.current.push(timer1);
     
     // Show third ad after 13 seconds
-    const thirdAdTimer = setTimeout(() => {
-      setShowAd(false); // Close the second ad
-      setTimeout(() => {
-        showRandomAd(); // Show the third ad
-        setCurrentAdIndex(3);
-      }, 100);
+    const timer2 = setTimeout(() => {
+      setShowAd(false);
+      setTimeout(() => showAdWithIndex(2), 200);
     }, 13000);
+    adTimersRef.current.push(timer2);
     
-    // Show mom story after 20 seconds and end the ad sequence
-    momStoryTimerRef.current = setTimeout(() => {
-      setShowAd(false); // Close the final ad
+    // Show mom story after 20 seconds
+    timerRef.current = setTimeout(() => {
+      setShowAd(false);
+      setAdSequenceComplete(true);
       setTimeout(() => {
-        showRandomMomStory(); // Show mom's story
-      }, 100);
+        showRandomMomStory();
+        setAdSequenceRunning(false);
+      }, 200);
     }, 20000);
-    
-    return () => {
-      clearTimeout(secondAdTimer);
-      clearTimeout(thirdAdTimer);
-      if (momStoryTimerRef.current) {
-        clearTimeout(momStoryTimerRef.current);
-      }
-    };
-  }, [isTimerRunning, showRandomAd, showRandomMomStory]);
+  }, [isTimerRunning, showAdWithIndex, showRandomMomStory, adSequenceRunning]);
 
   // Handle breathing animation
   useEffect(() => {
@@ -160,6 +163,21 @@ const FocusModePage: React.FC = () => {
       clearInterval(focusTimer);
     };
   }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel]);
+
+  // Start ad sequence when timer starts
+  useEffect(() => {
+    if (isTimerRunning && !adSequenceRunning && !adSequenceComplete) {
+      startAdSequence();
+    }
+    
+    if (!isTimerRunning) {
+      clearAllTimers();
+    }
+    
+    return () => {
+      clearAllTimers();
+    };
+  }, [isTimerRunning, startAdSequence, adSequenceRunning, adSequenceComplete]);
 
   // Notification system
   useEffect(() => {
@@ -202,14 +220,20 @@ const FocusModePage: React.FC = () => {
     setIsTimerRunning(newTimerState);
     
     if (newTimerState) {
-      // Removed confetti
-      
       // First-time notification
       toast({
         title: "Focus Mode Activated",
         description: "Mom will be watching your progress...",
         duration: 3000,
       });
+      
+      // Reset ad sequence state
+      setAdSequenceComplete(false);
+      setCurrentAdIndex(0);
+    } else {
+      // Pause all timers when stopping
+      clearAllTimers();
+      setAdSequenceRunning(false);
     }
   };
 
@@ -220,14 +244,13 @@ const FocusModePage: React.FC = () => {
     setBreatheCount(0);
     setBreathePhase('inhale');
     setCurrentAdIndex(0);
+    setAdSequenceRunning(false);
+    setAdSequenceComplete(false);
+    setShowAd(false);
+    setShowMomStory(false);
     
-    // Clear any existing ad timer
-    if (adTimerRef.current) {
-      clearInterval(adTimerRef.current);
-      adTimerRef.current = null;
-    }
-    
-    // Removed confetti
+    // Clear any existing timers
+    clearAllTimers();
     
     toast({
       title: "Timer Reset",
@@ -248,12 +271,22 @@ const FocusModePage: React.FC = () => {
       description: "How dare you dismiss my wisdom!",
       duration: 3000,
     });
-    
-    // Removed confetti
   };
 
   const closeAd = () => {
     setShowAd(false);
+    
+    // If this is the last ad (index 2), show Mom's story immediately
+    if (currentAdIndex === 2) {
+      // Clear all timers to prevent any scheduled ads
+      clearAllTimers();
+      setAdSequenceComplete(true);
+      setAdSequenceRunning(false);
+      // Show mom story after a short delay
+      setTimeout(() => {
+        showRandomMomStory();
+      }, 200);
+    }
     
     // Mom gets a little less angry when you engage with her monetization
     const newAngerLevel = Math.max(0, momAngerLevel - 5);
@@ -283,18 +316,30 @@ const FocusModePage: React.FC = () => {
 
   // Function to manually trigger an ad (for testing)
   const forceShowAd = () => {
-    showRandomAd();
-    
-    toast({
-      title: "Ad Triggered",
-      description: "Mom needs to pay her bills somehow!",
-      duration: 3000,
-    });
+    if (!adSequenceRunning && !adSequenceComplete) {
+      startAdSequence();
+      
+      toast({
+        title: "Ad Sequence Started",
+        description: "3 ads will show over 20 seconds, then Mom's story!",
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: "Ad Sequence Already Running",
+        description: "Please wait for the current sequence to finish",
+        duration: 3000,
+      });
+    }
   };
 
   // Function to manually trigger mom story (for testing)
   const forceShowMomStory = () => {
     setIsTimerRunning(false);
+    clearAllTimers();
+    setAdSequenceRunning(false);
+    setAdSequenceComplete(true);
+    setShowAd(false);
     showRandomMomStory();
     
     toast({
@@ -384,16 +429,16 @@ const FocusModePage: React.FC = () => {
                   </div>
                 </div>
                 
-                {isTimerRunning && currentAdIndex > 0 && currentAdIndex <= 3 && (
+                {isTimerRunning && adSequenceRunning && (
                   <div>
                     <div className="flex justify-between text-sm font-bold mb-1">
                       <span>Ad Sequence</span>
-                      <span>{currentAdIndex}/3</span>
+                      <span>{currentAdIndex + 1}/3</span>
                     </div>
                     <div className="h-4 bg-gray-200 border-2 border-black">
                       <div 
                         className="h-full bg-momento-yellow transition-all"
-                        style={{ width: `${(currentAdIndex / 3) * 100}%` }}
+                        style={{ width: `${((currentAdIndex + 1) / 3) * 100}%` }}
                       ></div>
                     </div>
                   </div>
@@ -443,7 +488,7 @@ const FocusModePage: React.FC = () => {
                   className="neubrutalism-button w-full bg-momento-green text-black flex items-center justify-center"
                 >
                   <Focus className="mr-2 w-5 h-5" /> 
-                  Show Ad
+                  Show Ad Sequence
                 </button>
                 
                 <button 
@@ -533,7 +578,7 @@ const FocusModePage: React.FC = () => {
             <div className="mb-6">
               <MomAvatar 
                 speaking={true} 
-                message={momStories[currentStoryIndex]}
+                message="You are not studying anyway, now listen to my story..."
               />
             </div>
             
@@ -545,7 +590,7 @@ const FocusModePage: React.FC = () => {
       )}
       
       {/* Advertisement popup */}
-      {showAd && <AdComponent onClose={closeAd} />}
+      {showAd && <AdComponent onClose={closeAd} adIndex={currentAdIndex} />}
     </div>
   );
 };
