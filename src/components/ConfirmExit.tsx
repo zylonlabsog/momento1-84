@@ -2,15 +2,16 @@
 import React, { useState, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
-import { AlertDialog, AlertDialogContent, AlertDialogTitle } from './ui/alert-dialog';
-import { X } from 'lucide-react';
+import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription } from './ui/alert-dialog';
+import { X, Sparkles, XCircle, AlertTriangle } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const ConfirmExit: React.FC = () => {
   const { showExitConfirm, closeExitConfirm, resetApp } = useMomento();
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [moveCount, setMoveCount] = useState(0);
   const [showExitMessage, setShowExitMessage] = useState(false);
-  const [showStayMessage, setShowStayMessage] = useState(false);
+  const [showCoolEffect, setShowCoolEffect] = useState(false);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   
   const handleYesHover = () => {
@@ -20,22 +21,32 @@ const ConfirmExit: React.FC = () => {
       const newY = Math.floor(Math.random() * 100) - 50;
       setButtonPosition({ x: newX, y: newY });
       setMoveCount(prev => prev + 1);
+
+      // Add sparkle effect on hover
+      setShowCoolEffect(true);
+      setTimeout(() => setShowCoolEffect(false), 500);
     }
   };
   
   const handleActualExit = () => {
+    // Shoot confetti when user finally manages to click exit
+    confetti({
+      particleCount: 150,
+      spread: 100,
+      origin: { y: 0.5, x: 0.5 },
+      colors: ['#FF61D8', '#FFD600', '#00FF9E', '#00C6FF', '#FF4D4D']
+    });
+    
     setShowExitMessage(true);
     setTimeout(() => {
       resetApp();
       closeExitConfirm();
     }, 3000);
   };
-  
-  const handleStay = () => {
-    setShowStayMessage(true);
-    setTimeout(() => {
-      closeExitConfirm();
-    }, 3000);
+
+  const glowEffectStyle = {
+    boxShadow: showCoolEffect ? '0 0 20px rgba(255, 97, 216, 0.8), 0 0 30px rgba(255, 97, 216, 0.6), 0 0 40px rgba(255, 97, 216, 0.4)' : 'none',
+    transition: 'box-shadow 0.3s ease-out'
   };
 
   return (
@@ -45,7 +56,7 @@ const ConfirmExit: React.FC = () => {
           <AlertDialogTitle className="text-2xl font-black text-white uppercase">
             Are You Sure?
           </AlertDialogTitle>
-          {!showExitMessage && !showStayMessage && (
+          {!showExitMessage && (
             <button 
               onClick={closeExitConfirm}
               className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors"
@@ -55,6 +66,11 @@ const ConfirmExit: React.FC = () => {
           )}
         </div>
         
+        {/* Adding AlertDialogDescription for accessibility */}
+        <AlertDialogDescription className="sr-only">
+          Confirmation to exit the application
+        </AlertDialogDescription>
+        
         {showExitMessage ? (
           <div className="mb-6">
             <MomAvatar 
@@ -62,58 +78,61 @@ const ConfirmExit: React.FC = () => {
               message="You're so lazy! Always giving up before you even start. Typical."
             />
           </div>
-        ) : showStayMessage ? (
-          <div className="mb-6">
-            <MomAvatar 
-              speaking={true} 
-              message="Don't be shy man, go and chill and close the website."
-            />
-          </div>
         ) : (
-          <div className="mb-6">
-            <MomAvatar 
-              speaking={true} 
-              message="You haven't done ANYTHING yet. Typical."
-              interactive={true}
-            />
-          </div>
-        )}
-        
-        {!showExitMessage && !showStayMessage && (
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              ref={confirmButtonRef}
-              className="neubrutalism-button bg-momento-yellow relative overflow-hidden"
-              style={{
-                transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
-                transition: 'transform 0.2s ease-out'
-              }}
-              onMouseEnter={handleYesHover}
-              onClick={moveCount >= 3 ? handleActualExit : undefined}
-            >
-              <span className="relative z-10">Yes, I'm Sure</span>
-              {moveCount > 0 && moveCount < 3 && (
-                <div className="absolute inset-0 bg-momento-red opacity-20 animate-pulse"></div>
-              )}
-            </button>
+          <>
+            <div className="mb-6">
+              <MomAvatar 
+                speaking={true} 
+                message="You haven't done ANYTHING yet. Typical."
+                interactive={true}
+              />
+              
+              {/* Cool decorative elements */}
+              <div className="absolute top-2 right-2">
+                <Sparkles className="text-momento-yellow w-6 h-6 animate-pulse" />
+              </div>
+              <div className="absolute bottom-2 left-2">
+                <Sparkles className="text-momento-pink w-6 h-6 animate-pulse" style={{ animationDelay: '0.5s' }} />
+              </div>
+            </div>
             
-            <button 
-              className="neubrutalism-button bg-momento-green relative overflow-hidden"
-              onClick={handleStay}
-            >
-              <span className="relative z-10">No, I'll Stay</span>
-              <div className="absolute inset-0 bg-white opacity-0 hover:opacity-20 transition-opacity"></div>
-            </button>
-          </div>
+            <div className="flex justify-center">
+              <button 
+                ref={confirmButtonRef}
+                className="neubrutalism-button bg-momento-yellow relative overflow-hidden"
+                style={{
+                  transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
+                  transition: 'transform 0.2s ease-out',
+                  ...glowEffectStyle
+                }}
+                onMouseEnter={handleYesHover}
+                onClick={moveCount >= 3 ? handleActualExit : undefined}
+              >
+                <span className="relative z-10 flex items-center">
+                  {moveCount >= 3 && <XCircle className="mr-2 w-5 h-5" />}
+                  Yes, I'm Sure
+                </span>
+                {moveCount > 0 && moveCount < 3 && (
+                  <div className="absolute inset-0 bg-momento-red opacity-20 animate-pulse"></div>
+                )}
+              </button>
+            </div>
+          </>
         )}
         
-        {moveCount >= 3 && !showExitMessage && !showStayMessage && (
+        {moveCount >= 3 && !showExitMessage && (
           <div className="mt-4 p-2 border-2 border-white bg-momento-red animate-pulse">
-            <p className="text-white text-center font-bold">
+            <p className="text-white text-center font-bold flex items-center justify-center">
+              <AlertTriangle className="mr-2 w-5 h-5" />
               Fine, you can leave. I knew you'd give up anyway.
             </p>
           </div>
         )}
+        
+        {/* Cool background effect */}
+        <div className="absolute -z-10 inset-0 overflow-hidden rounded-lg">
+          <div className="absolute -inset-[100px] bg-[linear-gradient(90deg,hsla(341,91%,68%,1)_0%,hsla(24,100%,83%,1)_100%)] opacity-30 blur-xl animate-[spin_8s_linear_infinite]"></div>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );
