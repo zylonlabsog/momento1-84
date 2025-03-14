@@ -1,6 +1,6 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
+import MomAvatar from './MomAvatar';
 
 const TaskInput: React.FC = () => {
   const { 
@@ -16,22 +16,18 @@ const TaskInput: React.FC = () => {
   const [showEncouragement, setShowEncouragement] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (taskInput.trim() !== '') {
-      // Show criticism
       setShowCriticism(true);
       triggerCriticism();
       
-      // After criticism, show fake encouragement
       setTimeout(() => {
         setShowCriticism(false);
         setShowEncouragement(true);
       }, 3000);
       
-      // Then move to next stage
       setTimeout(() => {
         setShowEncouragement(false);
         setStage('fakeChoice');
@@ -39,7 +35,6 @@ const TaskInput: React.FC = () => {
     }
   };
 
-  // Force focus on input when component mounts
   useEffect(() => {
     if (inputRef.current) {
       setTimeout(() => {
