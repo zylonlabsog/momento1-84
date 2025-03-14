@@ -33,4 +33,7 @@ export interface MomentoContextType {
   attemptToExit: () => void;
   closeExitConfirm: () => void;
   resetApp: () => void;
+  momAngerLevel: number;
+  setMomAngerLevel: (level: number) => void;
+  calmMomDown: () => void;
 }

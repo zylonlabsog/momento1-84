@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
 import { toast } from '@/components/ui/use-toast';
@@ -118,6 +119,7 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
+  const [momAngerLevel, setMomAngerLevel] = useState<number>(0);
 
   const triggerCriticism = () => {
     const randomIndex = Math.floor(Math.random() * criticisms.length);
@@ -126,6 +128,9 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTimeout(() => {
       setTaskInput('');
     }, 2500);
+    
+    // Increase mom's anger level with each criticism
+    setMomAngerLevel(prev => Math.min(100, prev + 10));
   };
 
   const triggerRandomSabotage = () => {
@@ -155,6 +160,9 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
         document.body.classList.remove('animate-shake');
       }, 500);
     }
+    
+    // Increase mom's anger level with each sabotage
+    setMomAngerLevel(prev => Math.min(100, prev + 5));
   };
 
   useEffect(() => {
@@ -180,6 +188,12 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setTaskInput('');
     setSelectedCriticism(null);
     setSabotageEvents(SABOTAGE_EVENTS);
+    setMomAngerLevel(0);
+  };
+
+  const calmMomDown = () => {
+    // Used when user does something to appease mom
+    setMomAngerLevel(prev => Math.max(0, prev - 15));
   };
 
   const value = {
@@ -196,7 +210,10 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setShowExitConfirm,
     attemptToExit,
     closeExitConfirm,
-    resetApp
+    resetApp,
+    momAngerLevel,
+    setMomAngerLevel,
+    calmMomDown
   };
 
   return <MomentoContext.Provider value={value}>{children}</MomentoContext.Provider>;

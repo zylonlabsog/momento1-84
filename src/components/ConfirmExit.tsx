@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
 import { AlertDialog, AlertDialogContent, AlertDialogTitle } from './ui/alert-dialog';
+import { X } from 'lucide-react';
 
 const ConfirmExit: React.FC = () => {
   const { showExitConfirm, closeExitConfirm, resetApp } = useMomento();
@@ -40,9 +41,19 @@ const ConfirmExit: React.FC = () => {
   return (
     <AlertDialog open={showExitConfirm} onOpenChange={closeExitConfirm}>
       <AlertDialogContent className="neubrutalism-box bg-momento-red p-6 border-black">
-        <AlertDialogTitle className="text-2xl font-black text-white mb-4 uppercase text-center">
-          Are You Sure?
-        </AlertDialogTitle>
+        <div className="flex justify-between items-center mb-4">
+          <AlertDialogTitle className="text-2xl font-black text-white uppercase">
+            Are You Sure?
+          </AlertDialogTitle>
+          {!showExitMessage && !showStayMessage && (
+            <button 
+              onClick={closeExitConfirm}
+              className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
         
         {showExitMessage ? (
           <div className="mb-6">
@@ -63,6 +74,7 @@ const ConfirmExit: React.FC = () => {
             <MomAvatar 
               speaking={true} 
               message="You haven't done ANYTHING yet. Typical."
+              interactive={true}
             />
           </div>
         )}
@@ -71,7 +83,7 @@ const ConfirmExit: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <button 
               ref={confirmButtonRef}
-              className="neubrutalism-button bg-momento-yellow"
+              className="neubrutalism-button bg-momento-yellow relative overflow-hidden"
               style={{
                 transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
                 transition: 'transform 0.2s ease-out'
@@ -79,22 +91,28 @@ const ConfirmExit: React.FC = () => {
               onMouseEnter={handleYesHover}
               onClick={moveCount >= 3 ? handleActualExit : undefined}
             >
-              Yes, I'm Sure
+              <span className="relative z-10">Yes, I'm Sure</span>
+              {moveCount > 0 && moveCount < 3 && (
+                <div className="absolute inset-0 bg-momento-red opacity-20 animate-pulse"></div>
+              )}
             </button>
             
             <button 
-              className="neubrutalism-button bg-momento-green"
+              className="neubrutalism-button bg-momento-green relative overflow-hidden"
               onClick={handleStay}
             >
-              No, I'll Stay
+              <span className="relative z-10">No, I'll Stay</span>
+              <div className="absolute inset-0 bg-white opacity-0 hover:opacity-20 transition-opacity"></div>
             </button>
           </div>
         )}
         
         {moveCount >= 3 && !showExitMessage && !showStayMessage && (
-          <p className="text-white text-center mt-4 animate-pulse">
-            Fine, you can leave. I knew you'd give up anyway.
-          </p>
+          <div className="mt-4 p-2 border-2 border-white bg-momento-red animate-pulse">
+            <p className="text-white text-center font-bold">
+              Fine, you can leave. I knew you'd give up anyway.
+            </p>
+          </div>
         )}
       </AlertDialogContent>
     </AlertDialog>

@@ -6,12 +6,16 @@ import TaskInput from '@/components/TaskInput';
 import FakeChoice from '@/components/FakeChoice';
 import SabotageEvents from '@/components/SabotageEvents';
 import ConfirmExit from '@/components/ConfirmExit';
+import InstallAppBanner from '@/components/InstallAppBanner';
+import MomMoodMeter from '@/components/MomMoodMeter';
+import { Brain, Coffee, Calendar, Sparkles } from 'lucide-react';
 
 const MomentoApp: React.FC = () => {
   const { stage, setStage, attemptToExit } = useMomento();
   const [welcomeMessage, setWelcomeMessage] = useState("Oh, look who finally decided to be productive. Took you long enough.");
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [buttonMoved, setButtonMoved] = useState(false);
+  const [showTips, setShowTips] = useState(false);
   
   // Move start button away from cursor when hovered
   const handleStartButtonHover = () => {
@@ -66,6 +70,8 @@ const MomentoApp: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-[#f0f0f0] p-6 cursor-default">
+      <InstallAppBanner />
+      
       <header className="max-w-4xl mx-auto pt-6 pb-10">
         <div className="neubrutalism-box bg-momento-blue p-4 mb-6">
           <h1 className="text-4xl md:text-6xl font-black text-center uppercase tracking-wide">
@@ -78,13 +84,18 @@ const MomentoApp: React.FC = () => {
             <span className="inline-block animate-float" style={{ animationDelay: '0.6s' }}>o</span>
           </h1>
           <p className="text-center font-bold text-lg mt-2">The To-Do App That Judges You</p>
+          
+          {/* Mom Mood Meter */}
+          <div className="mt-4">
+            <MomMoodMeter />
+          </div>
         </div>
       </header>
       
       <main className="max-w-4xl mx-auto">
         {stage === 'welcome' && (
           <div className="flex flex-col items-center justify-center py-10">
-            <MomAvatar size="lg" speaking={true} message={welcomeMessage} />
+            <MomAvatar size="lg" speaking={true} message={welcomeMessage} interactive={true} />
             
             <div className="mt-16 relative">
               <button
@@ -98,6 +109,44 @@ const MomentoApp: React.FC = () => {
               >
                 Start Being Productive
               </button>
+            </div>
+            
+            {/* Fun Neubrutalism UI Elements */}
+            <div className="w-full max-w-md mt-16">
+              <button 
+                onClick={() => setShowTips(!showTips)}
+                className="neubrutalism-button w-full bg-momento-purple mb-4"
+              >
+                {showTips ? "Hide Mom's Tips" : "Show Mom's Tips"}
+              </button>
+              
+              {showTips && (
+                <div className="neubrutalism-box bg-white p-6 animate-popup">
+                  <h3 className="font-black text-xl mb-4 uppercase">Mom's Productivity Tips</h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 border-2 border-black bg-momento-yellow">
+                      <Brain className="w-8 h-8 text-black shrink-0" />
+                      <p className="font-medium">Your cousin finished their PhD at age 12. What's your excuse?</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 border-2 border-black bg-momento-green">
+                      <Coffee className="w-8 h-8 text-black shrink-0" />
+                      <p className="font-medium">Coffee breaks are for the weak. I raised 4 kids without sleep.</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 border-2 border-black bg-momento-pink">
+                      <Calendar className="w-8 h-8 text-black shrink-0" />
+                      <p className="font-medium">You've been procrastinating since 2015. That's a record!</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 p-3 border-2 border-black bg-momento-blue">
+                      <Sparkles className="w-8 h-8 text-black shrink-0" />
+                      <p className="font-medium">Have you considered a career in professional disappointment?</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -122,6 +171,20 @@ const MomentoApp: React.FC = () => {
         >
           I Give Up
         </button>
+        
+        {/* Cool Neubrutalism decorative elements */}
+        <div className="flex justify-center gap-3 mt-6">
+          {[...Array(5)].map((_, i) => (
+            <div 
+              key={i}
+              className="w-8 h-8 border-2 border-black"
+              style={{ 
+                backgroundColor: ['#FFD600', '#FF61D8', '#00C6FF', '#00FF9E', '#FF4D4D'][i],
+                transform: `rotate(${Math.random() * 10 - 5}deg)`
+              }}
+            ></div>
+          ))}
+        </div>
       </footer>
     </div>
   );

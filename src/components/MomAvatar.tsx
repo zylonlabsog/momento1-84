@@ -1,22 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
+import confetti from 'canvas-confetti';
 
 interface MomAvatarProps {
   size?: 'sm' | 'md' | 'lg';
   speaking?: boolean;
   message?: string;
+  interactive?: boolean;
 }
 
 const MomAvatar: React.FC<MomAvatarProps> = ({ 
   size = 'md',
   speaking = false,
-  message
+  message,
+  interactive = false
 }) => {
-  const { stage } = useMomento();
+  const { stage, triggerRandomSabotage } = useMomento();
   const [animation, setAnimation] = useState<string>('animate-popup');
   const [blinkEyes, setBlinkEyes] = useState<boolean>(false);
   const [emote, setEmote] = useState<string>('');
+  const [pokeCount, setPokeCount] = useState<number>(0);
   
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -54,6 +58,26 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
     };
   }, [stage, speaking]);
 
+  const handlePoke = () => {
+    if (!interactive) return;
+    
+    setPokeCount(prev => prev + 1);
+    setEmote('annoyed');
+    
+    if (pokeCount >= 2) {
+      // Trigger mom's anger with confetti explosion (but in angry colors)
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FF4D4D', '#FFD600', '#FF61D8']
+      });
+      
+      triggerRandomSabotage();
+      setPokeCount(0);
+    }
+  };
+
   return (
     <div className="flex flex-col items-center">
       {message && (
@@ -63,7 +87,8 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       )}
       
       <div 
-        className={`${sizeClasses[size]} ${animation} rounded-full bg-momento-pink border-4 border-black flex items-center justify-center overflow-hidden relative`}
+        className={`${sizeClasses[size]} ${animation} rounded-full bg-momento-pink border-4 border-black flex items-center justify-center overflow-hidden relative ${interactive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+        onClick={handlePoke}
       >
         {/* Aura effect for mom's judgement */}
         {emote === 'judgmental' && (
@@ -121,6 +146,12 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
             ></div>
           ))}
         </div>
+        
+        {interactive && (
+          <div className="absolute -bottom-2 w-full text-center">
+            <span className="text-[8px] text-momento-red font-bold">{pokeCount > 0 ? "Stop poking me!" : "Poke me"}</span>
+          </div>
+        )}
       </div>
     </div>
   );
