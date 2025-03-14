@@ -45,7 +45,9 @@ const FocusModePage: React.FC = () => {
         
         // Improve mom's mood slightly as you focus
         if (focusSeconds % 20 === 0 && focusSeconds > 0) {
-          setMomAngerLevel(prev => Math.max(0, prev - 1));
+          // FIX: Use the current value of momAngerLevel instead of using a callback
+          const newAngerLevel = Math.max(0, momAngerLevel - 1);
+          setMomAngerLevel(newAngerLevel);
         }
       }, 1000);
     }
@@ -69,8 +71,9 @@ const FocusModePage: React.FC = () => {
         setShowMomStory(true);
         setCurrentStoryIndex(prev => (prev + 1) % momStories.length);
         
-        // Make mom angrier when she has to distract you
-        setMomAngerLevel(prev => Math.min(100, prev + 15));
+        // FIX: Use the current value of momAngerLevel instead of using a callback
+        const newAngerLevel = Math.min(100, momAngerLevel + 15);
+        setMomAngerLevel(newAngerLevel);
         
         // Increase distraction count
         setDistractionCount(prev => prev + 1);
@@ -116,8 +119,9 @@ const FocusModePage: React.FC = () => {
   const closeMomStory = () => {
     setShowMomStory(false);
     
-    // Mom gets more annoyed when you dismiss her
-    setMomAngerLevel(prev => Math.min(100, prev + 5));
+    // FIX: Use the current value of momAngerLevel instead of using a callback
+    const newAngerLevel = Math.min(100, momAngerLevel + 5);
+    setMomAngerLevel(newAngerLevel);
     
     // Small confetti burst when closing
     confetti({
