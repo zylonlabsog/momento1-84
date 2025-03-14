@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
 import { toast } from '@/components/ui/use-toast';
@@ -23,90 +24,20 @@ const CRITICISMS: MomCriticism[] = [
 ];
 
 const SABOTAGE_EVENTS: SabotageEvent[] = [
-  {
-    id: 'trivia1',
-    type: 'reminder',
-    message: "Hey, did you know that lobsters pee from their faces?",
-    triggered: false
-  },
-  {
-    id: 'trivia2',
-    type: 'reminder',
-    message: "Ever wonder how deep the ocean is? Maybe you should Google it now.",
-    triggered: false
-  },
-  {
-    id: 'trivia3',
-    type: 'reminder',
-    message: "What happens if you microwave an egg? Maybe try it instead of working.",
-    triggered: false
-  },
-  {
-    id: 'jumpScare1',
-    type: 'jumpScare',
-    message: "I KNOW YOU'RE PROCRASTINATING. GET BACK TO WORK.",
-    triggered: false
-  },
-  {
-    id: 'fakeProgress1',
-    type: 'fakeProgress',
-    message: "99% Completed... Error: Productivity Not Found. Try Again.",
-    triggered: false
-  },
-  {
-    id: 'comparison1',
-    type: 'reminder',
-    message: "Your friend just got promoted while you're sitting here.",
-    triggered: false
-  },
-  {
-    id: 'phoneCall1',
-    type: 'reminder',
-    message: "Did you call your grandma yet? She's been waiting.",
-    triggered: false
-  },
-  {
-    id: 'jumpScare2',
-    type: 'jumpScare',
-    message: "HEY! EYES ON THE SCREEN! FOCUS!",
-    triggered: false
-  },
-  {
-    id: 'fakeProgress2',
-    type: 'fakeProgress',
-    message: "Task almost done... Oops, server crash. Start over!",
-    triggered: false
-  },
-  {
-    id: 'passive1',
-    type: 'reminder',
-    message: "Your friends are working right now. What are YOU doing?",
-    triggered: false
-  },
-  {
-    id: 'passive2',
-    type: 'reminder',
-    message: "Your childhood self would be disappointed.",
-    triggered: false
-  },
-  {
-    id: 'passive3',
-    type: 'reminder',
-    message: "You're getting outworked by a 12-year-old entrepreneur.",
-    triggered: false
-  },
-  {
-    id: 'passive4',
-    type: 'reminder',
-    message: "Everyone else is achieving their dreams while you're here.",
-    triggered: false
-  },
-  {
-    id: 'passive5',
-    type: 'reminder',
-    message: "That deadline isn't going to meet itself, you know.",
-    triggered: false
-  },
+  { id: 'trivia1', type: 'reminder', message: "Hey, did you know that lobsters pee from their faces?", triggered: false },
+  { id: 'trivia2', type: 'reminder', message: "Ever wonder how deep the ocean is? Maybe you should Google it now.", triggered: false },
+  { id: 'trivia3', type: 'reminder', message: "What happens if you microwave an egg? Maybe try it instead of working.", triggered: false },
+  { id: 'jumpScare1', type: 'jumpScare', message: "I KNOW YOU'RE PROCRASTINATING. GET BACK TO WORK.", triggered: false },
+  { id: 'fakeProgress1', type: 'fakeProgress', message: "99% Completed... Error: Productivity Not Found. Try Again.", triggered: false },
+  { id: 'comparison1', type: 'reminder', message: "Your friend just got promoted while you're sitting here.", triggered: false },
+  { id: 'phoneCall1', type: 'reminder', message: "Did you call your grandma yet? She's been waiting.", triggered: false },
+  { id: 'jumpScare2', type: 'jumpScare', message: "HEY! EYES ON THE SCREEN! FOCUS!", triggered: false },
+  { id: 'fakeProgress2', type: 'fakeProgress', message: "Task almost done... Oops, server crash. Start over!", triggered: false },
+  { id: 'passive1', type: 'reminder', message: "Your friends are working right now. What are YOU doing?", triggered: false },
+  { id: 'passive2', type: 'reminder', message: "Your childhood self would be disappointed.", triggered: false },
+  { id: 'passive3', type: 'reminder', message: "You're getting outworked by a 12-year-old entrepreneur.", triggered: false },
+  { id: 'passive4', type: 'reminder', message: "Everyone else is achieving their dreams while you're here.", triggered: false },
+  { id: 'passive5', type: 'reminder', message: "That deadline isn't going to meet itself, you know.", triggered: false },
 ];
 
 const MomentoContext = createContext<MomentoContextType | undefined>(undefined);
@@ -117,7 +48,6 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [criticisms] = useState<MomCriticism[]>(CRITICISMS);
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
-  const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
   const [momAngerLevel, setMomAngerLevel] = useState<number>(0);
 
   const triggerCriticism = () => {
@@ -180,14 +110,6 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => clearInterval(calmDownInterval);
   }, [stage]);
 
-  const attemptToExit = () => {
-    setShowExitConfirm(true);
-  };
-
-  const closeExitConfirm = () => {
-    setShowExitConfirm(false);
-  };
-
   const resetApp = () => {
     setStage('welcome');
     setTaskInput('');
@@ -211,14 +133,10 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     triggerCriticism,
     sabotageEvents,
     triggerRandomSabotage,
-    showExitConfirm,
-    setShowExitConfirm,
-    attemptToExit,
-    closeExitConfirm,
-    resetApp,
     momAngerLevel,
     setMomAngerLevel,
-    calmMomDown
+    calmMomDown,
+    resetApp
   };
 
   return <MomentoContext.Provider value={value}>{children}</MomentoContext.Provider>;

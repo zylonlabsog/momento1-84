@@ -12,7 +12,6 @@ const TaskInput: React.FC = () => {
     triggerCriticism, 
     selectedCriticism,
     setStage,
-    attemptToExit,
     calmMomDown,
     setMomAngerLevel,
     momAngerLevel
@@ -148,20 +147,12 @@ const TaskInput: React.FC = () => {
               )}
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex justify-center">
               <button 
                 type="submit" 
-                className={`neubrutalism-button w-3/4 ${taskInput.trim() !== '' ? 'bg-momento-green' : 'bg-momento-yellow'}`}
+                className={`neubrutalism-button w-full ${taskInput.trim() !== '' ? 'bg-momento-green' : 'bg-momento-yellow'}`}
               >
                 Add Task
-              </button>
-              
-              <button 
-                type="button"
-                onClick={attemptToExit}
-                className="neubrutalism-button w-1/4 bg-momento-red text-white"
-              >
-                Quit
               </button>
             </div>
           </form>

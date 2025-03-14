@@ -5,14 +5,13 @@ import MomAvatar from '@/components/MomAvatar';
 import TaskInput from '@/components/TaskInput';
 import FakeChoice from '@/components/FakeChoice';
 import SabotageEvents from '@/components/SabotageEvents';
-import ConfirmExit from '@/components/ConfirmExit';
 import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
 import FocusMode from '@/components/FocusMode';
 import { Brain, Coffee, Calendar, Sparkles, Skull } from 'lucide-react';
 
 const MomentoApp: React.FC = () => {
-  const { stage, setStage, attemptToExit } = useMomento();
+  const { stage, setStage } = useMomento();
   const [welcomeMessage, setWelcomeMessage] = useState("Oh, look who finally decided to be productive. Took you long enough.");
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [buttonMoved, setButtonMoved] = useState(false);
@@ -45,30 +44,6 @@ const MomentoApp: React.FC = () => {
     }, 1000);
   }, []);
 
-  // Add event listeners for beforeunload and keydown (Escape)
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      attemptToExit();
-      e.preventDefault();
-      e.returnValue = '';
-      return '';
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        attemptToExit();
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [attemptToExit]);
-  
   // Update the title to include "The To-Do App That Judges You Like Your Mom"
   useEffect(() => {
     document.title = "Momento - The To-Do App That Judges You Like Your Mom";
@@ -183,21 +158,12 @@ const MomentoApp: React.FC = () => {
         
         {/* Sabotage events are always present but conditionally displayed */}
         <SabotageEvents />
-        
-        {/* Exit confirmation dialog */}
-        <ConfirmExit />
       </main>
       
       <footer className="mt-10 max-w-4xl mx-auto text-center">
         <p className="font-medium text-gray-700">
           Mom is watching your (lack of) productivity.
         </p>
-        <button 
-          onClick={attemptToExit}
-          className="mt-4 text-gray-500 underline hover:text-gray-700"
-        >
-          I Give Up
-        </button>
         
         {/* Cool Neubrutalism decorative elements */}
         <div className="flex justify-center gap-3 mt-6">
