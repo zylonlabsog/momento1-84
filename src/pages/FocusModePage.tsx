@@ -98,39 +98,23 @@ const FocusModePage: React.FC = () => {
     setAdSequenceComplete(false);
     clearAllTimers();
     
+    console.log("Starting ad sequence");
+    
     // Show first ad immediately
     showAdWithIndex(0);
     
-    // Show second ad after 6 seconds if first ad is closed
-    const timer1 = setTimeout(() => {
-      if (currentAdIndex === 0 && showAd) {
-        setShowAd(false);
-        setTimeout(() => showAdWithIndex(1), 200);
-      }
-    }, 6000);
-    adTimersRef.current.push(timer1);
-    
-    // Show third ad after 13 seconds if second ad is closed
-    const timer2 = setTimeout(() => {
-      if (currentAdIndex === 1 && showAd) {
-        setShowAd(false);
-        setTimeout(() => showAdWithIndex(2), 200);
-      }
-    }, 13000);
-    adTimersRef.current.push(timer2);
-    
-    // If user doesn't interact with ads, show mom story after 20 seconds
+    // Set up timer for auto-progression to mom story if user doesn't interact
     timerRef.current = setTimeout(() => {
-      if (showAd) {
-        setShowAd(false);
-        setTimeout(() => {
-          showRandomMomStory();
-          setAdSequenceComplete(true);
-          setAdSequenceRunning(false);
-        }, 200);
-      }
+      console.log("20 seconds elapsed, showing mom story");
+      setShowAd(false);
+      setAdSequenceComplete(true);
+      setAdSequenceRunning(false);
+      
+      setTimeout(() => {
+        showRandomMomStory();
+      }, 200);
     }, 20000);
-  }, [isTimerRunning, showAdWithIndex, showRandomMomStory, adSequenceRunning, currentAdIndex, showAd]);
+  }, [isTimerRunning, showAdWithIndex, showRandomMomStory, adSequenceRunning]);
 
   // Handle breathing animation
   useEffect(() => {
@@ -172,15 +156,15 @@ const FocusModePage: React.FC = () => {
   // Start ad sequence when timer starts
   useEffect(() => {
     if (isTimerRunning && !adSequenceRunning && !adSequenceComplete) {
-      startAdSequence();
-    }
-    
-    if (!isTimerRunning) {
-      clearAllTimers();
+      const adSequenceTimer = setTimeout(() => {
+        startAdSequence();
+      }, 5000); // Start ad sequence after 5 seconds of focus
+      
+      return () => clearTimeout(adSequenceTimer);
     }
     
     return () => {
-      clearAllTimers();
+      // No cleanup needed if condition not met
     };
   }, [isTimerRunning, startAdSequence, adSequenceRunning, adSequenceComplete]);
 
@@ -281,43 +265,53 @@ const FocusModePage: React.FC = () => {
   const closeAd = () => {
     setShowAd(false);
     
-    // Proceed to next ad based on current index
+    // Clear auto-progression timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    // Progress to next ad based on current index
     if (currentAdIndex === 0) {
-      setTimeout(() => showAdWithIndex(1), 200);
+      setTimeout(() => showAdWithIndex(1), 200); // Show second ad
     } else if (currentAdIndex === 1) {
-      setTimeout(() => showAdWithIndex(2), 200);
+      setTimeout(() => showAdWithIndex(2), 200); // Show third ad
     } else if (currentAdIndex === 2) {
-      // Last ad closed, complete sequence and show mom story
-      clearAllTimers();
+      // Last ad closed, complete sequence
       setAdSequenceComplete(true);
       setAdSequenceRunning(false);
+      
+      // Show mom story after closing third ad
       setTimeout(() => {
         showRandomMomStory();
       }, 200);
     }
-    
-    // Mom gets a little less angry when you engage with her monetization
-    const newAngerLevel = Math.max(0, momAngerLevel - 5);
-    setMomAngerLevel(newAngerLevel);
   };
 
   const handleAdClick = () => {
     setShowAd(false);
     
+    // Clear auto-progression timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
     // If this is the final (third) ad, show mom story
     if (currentAdIndex === 2) {
-      clearAllTimers();
       setAdSequenceComplete(true);
       setAdSequenceRunning(false);
+      
+      // Show mom story after clicking third ad
       setTimeout(() => {
         showRandomMomStory();
       }, 200);
     } else {
       // Otherwise proceed to next ad
       if (currentAdIndex === 0) {
-        setTimeout(() => showAdWithIndex(1), 200);
+        setTimeout(() => showAdWithIndex(1), 200); // Show second ad
       } else if (currentAdIndex === 1) {
-        setTimeout(() => showAdWithIndex(2), 200);
+        setTimeout(() => showAdWithIndex(2), 200); // Show third ad
       }
     }
     
@@ -349,21 +343,24 @@ const FocusModePage: React.FC = () => {
 
   // Function to manually trigger an ad (for testing)
   const forceShowAd = () => {
-    if (!adSequenceRunning && !adSequenceComplete) {
-      startAdSequence();
-      
-      toast({
-        title: "Ad Sequence Started",
-        description: "3 ads will show over 20 seconds, then Mom's story!",
-        duration: 3000,
-      });
-    } else {
+    if (adSequenceRunning) {
       toast({
         title: "Ad Sequence Already Running",
         description: "Please wait for the current sequence to finish",
         duration: 3000,
       });
+      return;
     }
+    
+    setAdSequenceComplete(false);
+    setCurrentAdIndex(0);
+    startAdSequence();
+    
+    toast({
+      title: "Ad Sequence Started",
+      description: "3 ads will show over 20 seconds, then Mom's story!",
+      duration: 3000,
+    });
   };
 
   // Function to manually trigger mom story (for testing)
