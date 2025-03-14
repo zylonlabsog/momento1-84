@@ -72,7 +72,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
     
     toast({
       title: "Mom Says:",
-      description: "You didn't even click the ad! How will I pay for your education?",
+      description: "You didn't even click the ad! You're not studying anyway, now listen to my story!",
       duration: 3000,
     });
     

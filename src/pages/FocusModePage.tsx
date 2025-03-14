@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -19,6 +20,7 @@ const FocusModePage: React.FC = () => {
   const [showAd, setShowAd] = useState(false);
   const [adTimeElapsed, setAdTimeElapsed] = useState(0);
   const adTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const momStoryTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const momStories = [
     "When I was your age, I studied 12 hours a day without breaks...",
@@ -33,6 +35,7 @@ const FocusModePage: React.FC = () => {
     "Your sister is managing three kids and a full-time job. You can't even manage this?",
     "I didn't raise you to be a quitter. But here we are...",
     "This is why your father and I are disappointed in you.",
+    "You are not studying anyway, now listen to my story...",
   ];
 
   // Calculate real-time progress
@@ -79,60 +82,63 @@ const FocusModePage: React.FC = () => {
     });
   }, [momAngerLevel, setMomAngerLevel]);
 
-  // Handle aggressive ad display and mom story popup after 30 seconds
+  // Handle aggressive ad display and mom story popup
   useEffect(() => {
     if (!isTimerRunning) {
-      // Clear any existing ad timer
+      // Clear any existing timers
       if (adTimerRef.current) {
         clearInterval(adTimerRef.current);
         adTimerRef.current = null;
+      }
+      if (momStoryTimerRef.current) {
+        clearTimeout(momStoryTimerRef.current);
+        momStoryTimerRef.current = null;
       }
       setAdTimeElapsed(0);
       return;
     }
 
-    // Initial ad after 20 seconds of starting
-    const initialAdTimer = setTimeout(() => {
-      if (isTimerRunning) {
-        showRandomAd();
-        setAdTimeElapsed(0);
+    // Start showing ads immediately
+    showRandomAd();
+    setAdTimeElapsed(0);
+    
+    // Show an ad every 5 seconds
+    adTimerRef.current = setInterval(() => {
+      setAdTimeElapsed(prev => {
+        const newTime = prev + 5;
         
-        // Start the 5-second ad interval
-        adTimerRef.current = setInterval(() => {
-          setAdTimeElapsed(prev => {
-            const newTime = prev + 5;
-            
-            // Show a new ad every 5 seconds
-            showRandomAd();
-            
-            // After 30 seconds of ads, pause timer and show mom story
-            if (newTime >= 30) {
-              // Clear the interval
-              if (adTimerRef.current) {
-                clearInterval(adTimerRef.current);
-                adTimerRef.current = null;
-              }
-              
-              // Close any open ad
-              setShowAd(false);
-              
-              // Show mom story and pause timer
-              showRandomMomStory();
-              setAdTimeElapsed(0);
-              return 0;
-            }
-            
-            return newTime;
-          });
-        }, 5000);
-      }
-    }, 20000);
+        // Show a new ad every 5 seconds
+        showRandomAd();
+        
+        // After 20 seconds of ads, show mom story
+        if (newTime >= 20) {
+          // Clear the interval
+          if (adTimerRef.current) {
+            clearInterval(adTimerRef.current);
+            adTimerRef.current = null;
+          }
+          
+          // Close any open ad
+          setShowAd(false);
+          
+          // Show mom story and pause timer
+          showRandomMomStory();
+          setAdTimeElapsed(0);
+          return 0;
+        }
+        
+        return newTime;
+      });
+    }, 5000);
     
     return () => {
-      clearTimeout(initialAdTimer);
       if (adTimerRef.current) {
         clearInterval(adTimerRef.current);
         adTimerRef.current = null;
+      }
+      if (momStoryTimerRef.current) {
+        clearTimeout(momStoryTimerRef.current);
+        momStoryTimerRef.current = null;
       }
     };
   }, [isTimerRunning, showRandomAd, showRandomMomStory]);
@@ -419,12 +425,12 @@ const FocusModePage: React.FC = () => {
                   <div>
                     <div className="flex justify-between text-sm font-bold mb-1">
                       <span>Ad Marathon</span>
-                      <span>{adTimeElapsed}/30s</span>
+                      <span>{adTimeElapsed}/20s</span>
                     </div>
                     <div className="h-4 bg-gray-200 border-2 border-black">
                       <div 
                         className="h-full bg-momento-yellow transition-all"
-                        style={{ width: `${(adTimeElapsed / 30) * 100}%` }}
+                        style={{ width: `${(adTimeElapsed / 20) * 100}%` }}
                       ></div>
                     </div>
                   </div>
