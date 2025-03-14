@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
 import { toast } from '@/components/ui/use-toast';
@@ -166,13 +165,19 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   useEffect(() => {
-    const sabotageInterval = setInterval(() => {
-      if (stage !== 'welcome') {
-        triggerRandomSabotage();
-      }
-    }, 30000);
+    if (stage === 'welcome') {
+      // Reset mom's anger when returning to welcome screen
+      setMomAngerLevel(0);
+    }
     
-    return () => clearInterval(sabotageInterval);
+    // Mom gets less angry over time when user is not doing anything
+    const calmDownInterval = setInterval(() => {
+      if (stage !== 'taskInput') {
+        calmMomDown();
+      }
+    }, 10000);
+    
+    return () => clearInterval(calmDownInterval);
   }, [stage]);
 
   const attemptToExit = () => {

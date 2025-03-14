@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, FastForward, Rewind } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 const TaskInput: React.FC = () => {
   const { 
@@ -11,7 +12,9 @@ const TaskInput: React.FC = () => {
     triggerCriticism, 
     selectedCriticism,
     setStage,
-    attemptToExit
+    attemptToExit,
+    calmMomDown,
+    setMomAngerLevel
   } = useMomento();
   
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -20,6 +23,7 @@ const TaskInput: React.FC = () => {
   const [typingSpeed, setTypingSpeed] = useState<'slow' | 'normal' | 'fast'>('normal');
   const [showSparkles, setShowSparkles] = useState(false);
   const [lastKeyTime, setLastKeyTime] = useState(Date.now());
+  const [keystrokeCount, setKeystrokeCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,6 +32,13 @@ const TaskInput: React.FC = () => {
     if (taskInput.trim() !== '') {
       setShowCriticism(true);
       triggerCriticism();
+      
+      // Shoot confetti on submit
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
       
       // Show sparkles animation on submit
       setShowSparkles(true);
@@ -46,10 +57,17 @@ const TaskInput: React.FC = () => {
   };
 
   const handleKeyPress = () => {
-    setLastKeyTime(Date.now());
+    const currentTime = Date.now();
+    setLastKeyTime(currentTime);
+    setKeystrokeCount(prev => prev + 1);
+    
+    // Typing increases mom's anger slightly (she doesn't want you to be productive)
+    if (keystrokeCount % 10 === 0) {
+      setMomAngerLevel(prev => Math.min(100, prev + 1));
+    }
   };
 
-  // Judge typing speed for extra psychological pressure
+  // Judge typing speed for extra psychological pressure - REVERSED as requested
   useEffect(() => {
     if (isInputFocused) {
       const interval = setInterval(() => {
@@ -57,9 +75,15 @@ const TaskInput: React.FC = () => {
         const timeSinceLastType = currentTime - lastKeyTime;
         
         if (timeSinceLastType > 3000) {
-          setTypingSpeed('slow');
+          setTypingSpeed('fast'); // REVERSED: When typing slow, we say "type faster"
+          if (Math.random() > 0.7) {
+            calmMomDown(); // Occasionally calm mom down when not typing
+          }
         } else if (timeSinceLastType < 500 && taskInput.length > 3) {
-          setTypingSpeed('fast');
+          setTypingSpeed('slow'); // REVERSED: When typing fast, we say "slow down"
+          if (Math.random() > 0.8) {
+            setMomAngerLevel(prev => Math.min(100, prev + 2)); // Mom gets more annoyed with fast typing
+          }
         } else {
           setTypingSpeed('normal');
         }
@@ -67,7 +91,7 @@ const TaskInput: React.FC = () => {
       
       return () => clearInterval(interval);
     }
-  }, [isInputFocused, lastKeyTime, taskInput]);
+  }, [isInputFocused, lastKeyTime, taskInput, calmMomDown, setMomAngerLevel]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -97,15 +121,17 @@ const TaskInput: React.FC = () => {
                 className={`neubrutalism-input ${isInputFocused ? 'animate-jitter' : ''}`}
               />
               
-              {isInputFocused && typingSpeed === 'slow' && (
+              {isInputFocused && typingSpeed === 'fast' && (
                 <div className="absolute right-[-60px] top-2">
                   <MomAvatar size="sm" message="Type faster!" />
+                  <FastForward className="w-5 h-5 text-momento-red absolute bottom-[-10px] right-0 animate-pulse" />
                 </div>
               )}
               
-              {isInputFocused && typingSpeed === 'fast' && (
+              {isInputFocused && typingSpeed === 'slow' && (
                 <div className="absolute right-[-60px] top-2">
                   <MomAvatar size="sm" message="Slow down, you'll make mistakes!" />
+                  <Rewind className="w-5 h-5 text-momento-blue absolute bottom-[-10px] right-0 animate-pulse" />
                 </div>
               )}
               
