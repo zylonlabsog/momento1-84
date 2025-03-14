@@ -9,7 +9,7 @@ import ConfirmExit from '@/components/ConfirmExit';
 import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
 import FocusMode from '@/components/FocusMode';
-import { Brain, Coffee, Calendar, Sparkles } from 'lucide-react';
+import { Brain, Coffee, Calendar, Sparkles, Skull } from 'lucide-react';
 
 const MomentoApp: React.FC = () => {
   const { stage, setStage, attemptToExit } = useMomento();
@@ -90,6 +90,13 @@ const MomentoApp: React.FC = () => {
             <span className="inline-block animate-float" style={{ animationDelay: '0.6s' }}>o</span>
           </h1>
           <p className="text-center font-bold text-lg mt-2">The To-Do App That Judges You Like Your Mom</p>
+          
+          {/* Creator attribution with evil emoji */}
+          <div className="mt-2 flex items-center justify-center gap-2">
+            <p className="text-center font-bold text-sm md:text-base bg-momento-black bg-opacity-10 px-3 py-1 rounded-full">
+              Made by Jagrit Sachdev <Skull className="w-4 h-4 inline-block animate-pulse text-momento-red" /> The Best Productivity App You'll Ever Find
+            </p>
+          </div>
           
           {/* Mom Mood Meter */}
           <div className="mt-4">
