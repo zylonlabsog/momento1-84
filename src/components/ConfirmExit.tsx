@@ -9,6 +9,7 @@ const ConfirmExit: React.FC = () => {
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [moveCount, setMoveCount] = useState(0);
   const [showExitMessage, setShowExitMessage] = useState(false);
+  const [showStayMessage, setShowStayMessage] = useState(false);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   
   const handleYesHover = () => {
@@ -30,7 +31,10 @@ const ConfirmExit: React.FC = () => {
   };
   
   const handleStay = () => {
-    closeExitConfirm();
+    setShowStayMessage(true);
+    setTimeout(() => {
+      closeExitConfirm();
+    }, 3000);
   };
 
   return (
@@ -47,6 +51,13 @@ const ConfirmExit: React.FC = () => {
               message="You're so lazy! Always giving up before you even start. Typical."
             />
           </div>
+        ) : showStayMessage ? (
+          <div className="mb-6">
+            <MomAvatar 
+              speaking={true} 
+              message="Don't be shy man, go and chill and close the website."
+            />
+          </div>
         ) : (
           <div className="mb-6">
             <MomAvatar 
@@ -56,7 +67,7 @@ const ConfirmExit: React.FC = () => {
           </div>
         )}
         
-        {!showExitMessage && (
+        {!showExitMessage && !showStayMessage && (
           <div className="grid grid-cols-2 gap-4">
             <button 
               ref={confirmButtonRef}
@@ -80,7 +91,7 @@ const ConfirmExit: React.FC = () => {
           </div>
         )}
         
-        {moveCount >= 3 && !showExitMessage && (
+        {moveCount >= 3 && !showExitMessage && !showStayMessage && (
           <p className="text-white text-center mt-4 animate-pulse">
             Fine, you can leave. I knew you'd give up anyway.
           </p>
