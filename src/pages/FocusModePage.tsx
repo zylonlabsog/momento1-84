@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -16,7 +17,7 @@ const FocusModePage: React.FC = () => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
-  const [adTimeElapsed, setAdTimeElapsed] = useState(0);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
   const adTimerRef = useRef<NodeJS.Timeout | null>(null);
   const momStoryTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -42,8 +43,8 @@ const FocusModePage: React.FC = () => {
   // Function to show a random mom story as a distraction
   const showRandomMomStory = useCallback(() => {
     setShowMomStory(true);
-    const newIndex = Math.floor(Math.random() * momStories.length);
-    setCurrentStoryIndex(newIndex);
+    // Choose an index that includes "You are not studying anyway, now listen to my story..."
+    setCurrentStoryIndex(12); // Index of the "not studying anyway" message
     setDistractionCount(prevCount => prevCount + 1);
     
     // Use direct value rather than callback function to avoid TypeScript errors
@@ -54,7 +55,7 @@ const FocusModePage: React.FC = () => {
     setIsTimerRunning(false);
     
     // Removed confetti
-  }, [distractionCount, momAngerLevel, setMomAngerLevel, momStories.length]);
+  }, [distractionCount, momAngerLevel, setMomAngerLevel]);
 
   // Function to display an advertisement
   const showRandomAd = useCallback(() => {
@@ -68,7 +69,7 @@ const FocusModePage: React.FC = () => {
     // Removed confetti
   }, [momAngerLevel, setMomAngerLevel]);
 
-  // Handle aggressive ad display and mom story popup
+  // Handle ad display sequence and mom story popup
   useEffect(() => {
     if (!isTimerRunning) {
       // Clear any existing timers
@@ -80,51 +81,45 @@ const FocusModePage: React.FC = () => {
         clearTimeout(momStoryTimerRef.current);
         momStoryTimerRef.current = null;
       }
-      setAdTimeElapsed(0);
+      setCurrentAdIndex(0);
       return;
     }
 
-    // Start showing ads immediately
+    // Show first ad immediately
     showRandomAd();
-    setAdTimeElapsed(0);
+    setCurrentAdIndex(1);
     
-    // Show an ad every 5 seconds
-    adTimerRef.current = setInterval(() => {
-      setAdTimeElapsed(prev => {
-        const newTime = prev + 5;
-        
-        // Show a new ad every 5 seconds
-        showRandomAd();
-        
-        // After 20 seconds of ads, show mom story
-        if (newTime >= 20) {
-          // Clear the interval
-          if (adTimerRef.current) {
-            clearInterval(adTimerRef.current);
-            adTimerRef.current = null;
-          }
-          
-          // Close any open ad
-          setShowAd(false);
-          
-          // Show mom story and pause timer
-          showRandomMomStory();
-          setAdTimeElapsed(0);
-          return 0;
-        }
-        
-        return newTime;
-      });
-    }, 5000);
+    // Show second ad after 6 seconds
+    const secondAdTimer = setTimeout(() => {
+      setShowAd(false); // Close the first ad
+      setTimeout(() => {
+        showRandomAd(); // Show the second ad
+        setCurrentAdIndex(2);
+      }, 100);
+    }, 6000);
+    
+    // Show third ad after 13 seconds
+    const thirdAdTimer = setTimeout(() => {
+      setShowAd(false); // Close the second ad
+      setTimeout(() => {
+        showRandomAd(); // Show the third ad
+        setCurrentAdIndex(3);
+      }, 100);
+    }, 13000);
+    
+    // Show mom story after 20 seconds and end the ad sequence
+    momStoryTimerRef.current = setTimeout(() => {
+      setShowAd(false); // Close the final ad
+      setTimeout(() => {
+        showRandomMomStory(); // Show mom's story
+      }, 100);
+    }, 20000);
     
     return () => {
-      if (adTimerRef.current) {
-        clearInterval(adTimerRef.current);
-        adTimerRef.current = null;
-      }
+      clearTimeout(secondAdTimer);
+      clearTimeout(thirdAdTimer);
       if (momStoryTimerRef.current) {
         clearTimeout(momStoryTimerRef.current);
-        momStoryTimerRef.current = null;
       }
     };
   }, [isTimerRunning, showRandomAd, showRandomMomStory]);
@@ -224,7 +219,7 @@ const FocusModePage: React.FC = () => {
     setDistractionCount(0);
     setBreatheCount(0);
     setBreathePhase('inhale');
-    setAdTimeElapsed(0);
+    setCurrentAdIndex(0);
     
     // Clear any existing ad timer
     if (adTimerRef.current) {
@@ -389,16 +384,16 @@ const FocusModePage: React.FC = () => {
                   </div>
                 </div>
                 
-                {isTimerRunning && adTimeElapsed > 0 && (
+                {isTimerRunning && currentAdIndex > 0 && currentAdIndex <= 3 && (
                   <div>
                     <div className="flex justify-between text-sm font-bold mb-1">
-                      <span>Ad Marathon</span>
-                      <span>{adTimeElapsed}/20s</span>
+                      <span>Ad Sequence</span>
+                      <span>{currentAdIndex}/3</span>
                     </div>
                     <div className="h-4 bg-gray-200 border-2 border-black">
                       <div 
                         className="h-full bg-momento-yellow transition-all"
-                        style={{ width: `${(adTimeElapsed / 20) * 100}%` }}
+                        style={{ width: `${(currentAdIndex / 3) * 100}%` }}
                       ></div>
                     </div>
                   </div>
