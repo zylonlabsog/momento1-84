@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { toast } from '@/components/ui/use-toast';
 
 interface AdComponentProps {
@@ -63,12 +62,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
   }, []);
 
   const handleCloseAd = () => {
-    // Spawn confetti when closing an ad
-    confetti({
-      particleCount: 20,
-      spread: 50,
-      origin: { y: 0.5, x: 0.5 }
-    });
+    // Removed confetti
     
     toast({
       title: "Mom Says:",
@@ -86,13 +80,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose }) => {
       duration: 3000,
     });
     
-    // More distracting confetti
-    confetti({
-      particleCount: 100,
-      spread: 100,
-      origin: { y: 0.5, x: 0.5 },
-      colors: ['#FF61D8', '#FFD600', '#00FF9E']
-    });
+    // Removed confetti
     
     onClose();
   };

@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
 import { toast } from '@/components/ui/use-toast';
 import { X, Focus, Clock, Zap, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
 import AdComponent from '@/components/AdComponent';
 
@@ -55,13 +53,7 @@ const FocusModePage: React.FC = () => {
     // Pause the timer when mom story appears
     setIsTimerRunning(false);
     
-    // Play nagging sound or effect
-    confetti({
-      particleCount: 30,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#FF61D8', '#FF4D4D']
-    });
+    // Removed confetti
   }, [distractionCount, momAngerLevel, setMomAngerLevel, momStories.length]);
 
   // Function to display an advertisement
@@ -73,13 +65,7 @@ const FocusModePage: React.FC = () => {
     const newAngerLevel = Math.min(100, momAngerLevel + 5);
     setMomAngerLevel(newAngerLevel);
     
-    // Play ad appearance effect
-    confetti({
-      particleCount: 15,
-      spread: 50,
-      origin: { y: 0.3 },
-      colors: ['#00C6FF', '#FFD600']
-    });
+    // Removed confetti
   }, [momAngerLevel, setMomAngerLevel]);
 
   // Handle aggressive ad display and mom story popup
@@ -221,13 +207,7 @@ const FocusModePage: React.FC = () => {
     setIsTimerRunning(newTimerState);
     
     if (newTimerState) {
-      // Start focus mode with fanfare
-      confetti({
-        particleCount: 50,
-        spread: 50,
-        origin: { y: 0.6 },
-        colors: ['#00FF9E']
-      });
+      // Removed confetti
       
       // First-time notification
       toast({
@@ -252,13 +232,7 @@ const FocusModePage: React.FC = () => {
       adTimerRef.current = null;
     }
     
-    // Small confetti burst when resetting
-    confetti({
-      particleCount: 30,
-      spread: 50,
-      origin: { y: 0.4 },
-      colors: ['#FFD600'],
-    });
+    // Removed confetti
     
     toast({
       title: "Timer Reset",
@@ -280,13 +254,7 @@ const FocusModePage: React.FC = () => {
       duration: 3000,
     });
     
-    // Small confetti burst when closing
-    confetti({
-      particleCount: 15,
-      spread: 40,
-      origin: { y: 0.4, x: 0.5 },
-      colors: ['#FF61D8'],
-    });
+    // Removed confetti
   };
 
   const closeAd = () => {
