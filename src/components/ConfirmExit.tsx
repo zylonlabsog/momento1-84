@@ -8,6 +8,7 @@ const ConfirmExit: React.FC = () => {
   const { showExitConfirm, closeExitConfirm, resetApp } = useMomento();
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [moveCount, setMoveCount] = useState(0);
+  const [showExitMessage, setShowExitMessage] = useState(false);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   
   const handleYesHover = () => {
@@ -21,8 +22,11 @@ const ConfirmExit: React.FC = () => {
   };
   
   const handleActualExit = () => {
-    resetApp();
-    closeExitConfirm();
+    setShowExitMessage(true);
+    setTimeout(() => {
+      resetApp();
+      closeExitConfirm();
+    }, 3000);
   };
   
   const handleStay = () => {
@@ -36,36 +40,47 @@ const ConfirmExit: React.FC = () => {
           Are You Sure?
         </AlertDialogTitle>
         
-        <div className="mb-6">
-          <MomAvatar 
-            speaking={true} 
-            message="You haven't done ANYTHING yet. Typical."
-          />
-        </div>
+        {showExitMessage ? (
+          <div className="mb-6">
+            <MomAvatar 
+              speaking={true} 
+              message="You're so lazy! Always giving up before you even start. Typical."
+            />
+          </div>
+        ) : (
+          <div className="mb-6">
+            <MomAvatar 
+              speaking={true} 
+              message="You haven't done ANYTHING yet. Typical."
+            />
+          </div>
+        )}
         
-        <div className="grid grid-cols-2 gap-4">
-          <button 
-            ref={confirmButtonRef}
-            className="neubrutalism-button bg-momento-yellow"
-            style={{
-              transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
-              transition: 'transform 0.2s ease-out'
-            }}
-            onMouseEnter={handleYesHover}
-            onClick={moveCount >= 3 ? handleActualExit : undefined}
-          >
-            Yes, I'm Sure
-          </button>
-          
-          <button 
-            className="neubrutalism-button bg-momento-green"
-            onClick={handleStay}
-          >
-            No, I'll Stay
-          </button>
-        </div>
+        {!showExitMessage && (
+          <div className="grid grid-cols-2 gap-4">
+            <button 
+              ref={confirmButtonRef}
+              className="neubrutalism-button bg-momento-yellow"
+              style={{
+                transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
+                transition: 'transform 0.2s ease-out'
+              }}
+              onMouseEnter={handleYesHover}
+              onClick={moveCount >= 3 ? handleActualExit : undefined}
+            >
+              Yes, I'm Sure
+            </button>
+            
+            <button 
+              className="neubrutalism-button bg-momento-green"
+              onClick={handleStay}
+            >
+              No, I'll Stay
+            </button>
+          </div>
+        )}
         
-        {moveCount >= 3 && (
+        {moveCount >= 3 && !showExitMessage && (
           <p className="text-white text-center mt-4 animate-pulse">
             Fine, you can leave. I knew you'd give up anyway.
           </p>
