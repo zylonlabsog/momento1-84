@@ -77,6 +77,36 @@ const SABOTAGE_EVENTS: SabotageEvent[] = [
     message: "Task almost done... Oops, server crash. Start over!",
     triggered: false
   },
+  {
+    id: 'passive1',
+    type: 'reminder',
+    message: "Your friends are working right now. What are YOU doing?",
+    triggered: false
+  },
+  {
+    id: 'passive2',
+    type: 'reminder',
+    message: "Your childhood self would be disappointed.",
+    triggered: false
+  },
+  {
+    id: 'passive3',
+    type: 'reminder',
+    message: "You're getting outworked by a 12-year-old entrepreneur.",
+    triggered: false
+  },
+  {
+    id: 'passive4',
+    type: 'reminder',
+    message: "Everyone else is achieving their dreams while you're here.",
+    triggered: false
+  },
+  {
+    id: 'passive5',
+    type: 'reminder',
+    message: "That deadline isn't going to meet itself, you know.",
+    triggered: false
+  },
 ];
 
 const MomentoContext = createContext<MomentoContextType | undefined>(undefined);
@@ -87,6 +117,7 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [criticisms] = useState<MomCriticism[]>(CRITICISMS);
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
+  const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
 
   const triggerCriticism = () => {
     const randomIndex = Math.floor(Math.random() * criticisms.length);
@@ -136,6 +167,14 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return () => clearInterval(sabotageInterval);
   }, [stage]);
 
+  const attemptToExit = () => {
+    setShowExitConfirm(true);
+  };
+
+  const closeExitConfirm = () => {
+    setShowExitConfirm(false);
+  };
+
   const resetApp = () => {
     setStage('welcome');
     setTaskInput('');
@@ -153,6 +192,10 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     triggerCriticism,
     sabotageEvents,
     triggerRandomSabotage,
+    showExitConfirm,
+    setShowExitConfirm,
+    attemptToExit,
+    closeExitConfirm,
     resetApp
   };
 

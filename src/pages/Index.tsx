@@ -5,9 +5,10 @@ import MomAvatar from '@/components/MomAvatar';
 import TaskInput from '@/components/TaskInput';
 import FakeChoice from '@/components/FakeChoice';
 import SabotageEvents from '@/components/SabotageEvents';
+import ConfirmExit from '@/components/ConfirmExit';
 
 const MomentoApp: React.FC = () => {
-  const { stage, setStage } = useMomento();
+  const { stage, setStage, attemptToExit } = useMomento();
   const [welcomeMessage, setWelcomeMessage] = useState("Oh, look who finally decided to be productive. Took you long enough.");
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [buttonMoved, setButtonMoved] = useState(false);
@@ -38,6 +39,30 @@ const MomentoApp: React.FC = () => {
       document.body.classList.remove('animate-jitter');
     }, 1000);
   }, []);
+
+  // Add event listeners for beforeunload and keydown (Escape)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      attemptToExit();
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        attemptToExit();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [attemptToExit]);
   
   return (
     <div className="min-h-screen bg-[#f0f0f0] p-6 cursor-default">
@@ -82,12 +107,21 @@ const MomentoApp: React.FC = () => {
         
         {/* Sabotage events are always present but conditionally displayed */}
         <SabotageEvents />
+        
+        {/* Exit confirmation dialog */}
+        <ConfirmExit />
       </main>
       
       <footer className="mt-10 max-w-4xl mx-auto text-center">
         <p className="font-medium text-gray-700">
           Mom is watching your (lack of) productivity.
         </p>
+        <button 
+          onClick={attemptToExit}
+          className="mt-4 text-gray-500 underline hover:text-gray-700"
+        >
+          I Give Up
+        </button>
       </footer>
     </div>
   );

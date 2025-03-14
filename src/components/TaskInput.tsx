@@ -10,7 +10,8 @@ const TaskInput: React.FC = () => {
     setTaskInput, 
     triggerCriticism, 
     selectedCriticism,
-    setStage 
+    setStage,
+    attemptToExit
   } = useMomento();
   
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -18,6 +19,7 @@ const TaskInput: React.FC = () => {
   const [showEncouragement, setShowEncouragement] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState<'slow' | 'normal' | 'fast'>('normal');
   const [showSparkles, setShowSparkles] = useState(false);
+  const [lastKeyTime, setLastKeyTime] = useState(Date.now());
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,14 +45,20 @@ const TaskInput: React.FC = () => {
     }
   };
 
+  const handleKeyPress = () => {
+    setLastKeyTime(Date.now());
+  };
+
   // Judge typing speed for extra psychological pressure
   useEffect(() => {
     if (isInputFocused) {
       const interval = setInterval(() => {
-        const lastTypedTime = Date.now();
-        if (lastTypedTime - lastTypedTime > 3000) {
+        const currentTime = Date.now();
+        const timeSinceLastType = currentTime - lastKeyTime;
+        
+        if (timeSinceLastType > 3000) {
           setTypingSpeed('slow');
-        } else if (lastTypedTime - lastTypedTime < 500) {
+        } else if (timeSinceLastType < 500 && taskInput.length > 3) {
           setTypingSpeed('fast');
         } else {
           setTypingSpeed('normal');
@@ -59,7 +67,7 @@ const TaskInput: React.FC = () => {
       
       return () => clearInterval(interval);
     }
-  }, [isInputFocused, taskInput]);
+  }, [isInputFocused, lastKeyTime, taskInput]);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -84,6 +92,7 @@ const TaskInput: React.FC = () => {
                 onChange={(e) => setTaskInput(e.target.value)}
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
+                onKeyDown={handleKeyPress}
                 placeholder="Enter your task here..."
                 className={`neubrutalism-input ${isInputFocused ? 'animate-jitter' : ''}`}
               />
@@ -108,12 +117,22 @@ const TaskInput: React.FC = () => {
               )}
             </div>
             
-            <button 
-              type="submit" 
-              className={`neubrutalism-button w-full ${taskInput.trim() !== '' ? 'bg-momento-green' : 'bg-momento-yellow'}`}
-            >
-              Add Task
-            </button>
+            <div className="flex space-x-2">
+              <button 
+                type="submit" 
+                className={`neubrutalism-button w-3/4 ${taskInput.trim() !== '' ? 'bg-momento-green' : 'bg-momento-yellow'}`}
+              >
+                Add Task
+              </button>
+              
+              <button 
+                type="button"
+                onClick={attemptToExit}
+                className="neubrutalism-button w-1/4 bg-momento-red text-white"
+              >
+                Quit
+              </button>
+            </div>
           </form>
         )}
         

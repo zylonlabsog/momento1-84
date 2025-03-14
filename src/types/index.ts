@@ -28,5 +28,9 @@ export interface MomentoContextType {
   triggerCriticism: () => void;
   sabotageEvents: SabotageEvent[];
   triggerRandomSabotage: () => void;
+  showExitConfirm: boolean;
+  setShowExitConfirm: (show: boolean) => void;
+  attemptToExit: () => void;
+  closeExitConfirm: () => void;
   resetApp: () => void;
 }
