@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
@@ -16,7 +15,6 @@ const ConfirmExit: React.FC = () => {
   const [backgroundPosition, setBackgroundPosition] = useState(0);
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
   
-  // Add a new animated background effect
   useEffect(() => {
     const interval = setInterval(() => {
       setBackgroundPosition(prev => (prev + 1) % 360);
@@ -25,7 +23,6 @@ const ConfirmExit: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
   
-  // Add a button rotation effect
   useEffect(() => {
     if (moveCount >= 3) {
       const rotateInterval = setInterval(() => {
@@ -38,17 +35,14 @@ const ConfirmExit: React.FC = () => {
   
   const handleYesHover = () => {
     if (moveCount < 3) {
-      // Add more dramatic movement
       const newX = Math.floor(Math.random() * 250) - 125;
       const newY = Math.floor(Math.random() * 150) - 75;
       setButtonPosition({ x: newX, y: newY });
       setMoveCount(prev => prev + 1);
 
-      // Enhanced sparkle effect
       setShowCoolEffect(true);
       setTimeout(() => setShowCoolEffect(false), 500);
       
-      // Add small confetti burst on each hover
       confetti({
         particleCount: 20,
         spread: 50,
@@ -60,7 +54,6 @@ const ConfirmExit: React.FC = () => {
   };
   
   const handleActualExit = () => {
-    // More elaborate confetti when user finally manages to click exit
     confetti({
       particleCount: 200,
       spread: 160,
@@ -77,10 +70,10 @@ const ConfirmExit: React.FC = () => {
     }, 3000);
   };
 
-  const handleCloseClick = () => {
+  const handleCloseClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     closeExitConfirm();
     
-    // Add a small confetti burst when closing
     confetti({
       particleCount: 30,
       spread: 70,
@@ -115,13 +108,13 @@ const ConfirmExit: React.FC = () => {
               onClick={handleCloseClick}
               className="bg-white p-2 border-2 border-black rounded-full hover:bg-momento-yellow transition-colors transform hover:scale-110"
               aria-label="Close dialog"
+              type="button"
             >
               <X size={16} />
             </button>
           )}
         </div>
         
-        {/* Adding AlertDialogDescription for accessibility */}
         <AlertDialogDescription className="sr-only">
           Confirmation to exit the application
         </AlertDialogDescription>
@@ -145,7 +138,6 @@ const ConfirmExit: React.FC = () => {
                 interactive={true}
               />
               
-              {/* Enhanced decorative elements */}
               <div className="absolute top-2 right-2">
                 <Sparkles className="text-momento-yellow w-8 h-8 animate-pulse" />
               </div>
@@ -165,6 +157,7 @@ const ConfirmExit: React.FC = () => {
                 }}
                 onMouseEnter={handleYesHover}
                 onClick={moveCount >= 3 ? handleActualExit : undefined}
+                type="button"
               >
                 <span className="relative z-10 flex items-center">
                   {moveCount >= 3 && <XCircle className="mr-2 w-5 h-5" />}
@@ -187,7 +180,6 @@ const ConfirmExit: React.FC = () => {
           </div>
         )}
         
-        {/* Enhanced background effect with floating elements */}
         <div className="absolute -z-10 inset-0 overflow-hidden rounded-lg">
           <div 
             className="absolute -inset-[100px] opacity-30 blur-xl" 
@@ -197,7 +189,6 @@ const ConfirmExit: React.FC = () => {
             }}
           ></div>
           
-          {/* Add floating elements in the background */}
           {[...Array(6)].map((_, i) => (
             <div 
               key={i}
