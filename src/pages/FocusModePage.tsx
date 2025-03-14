@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
 import { toast } from '@/components/ui/use-toast';
-import { X, Focus, Clock, Zap, LucideIcon, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
+import { X, Focus, Clock, Zap, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +14,8 @@ const FocusModePage: React.FC = () => {
   const [distractionCount, setDistractionCount] = useState(0);
   const [showMomStory, setShowMomStory] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(true);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [breatheCount, setBreatheCount] = useState(0);
 
   const momStories = [
     "When I was your age, I studied 12 hours a day without breaks...",
@@ -22,82 +23,134 @@ const FocusModePage: React.FC = () => {
     "I saw on Facebook that your friend got promoted. What are YOU doing?",
     "Remember when you said you'd be a doctor by now? That was 5 years ago...",
     "I told all my friends you're extremely productive. Don't make me a liar...",
+    "Are you even trying? This is why you'll never succeed in life!",
+    "Your brother finished his PhD at your age. What's your excuse?",
+    "I'm not angry, I'm just disappointed in your lack of focus.",
   ];
 
   // Calculate real-time progress
   const focusProgress = Math.min(100, (focusSeconds / 1500) * 100); // 25 minutes (1500 seconds) is 100%
 
-  useEffect(() => {
-    // Celebratory confetti when page first loads
+  // Function to show a random mom story as a distraction
+  const showRandomMomStory = useCallback(() => {
+    setShowMomStory(true);
+    const newIndex = Math.floor(Math.random() * momStories.length);
+    setCurrentStoryIndex(newIndex);
+    setDistractionCount(distractionCount + 1);
+    setMomAngerLevel(Math.min(100, momAngerLevel + 15));
+    
+    // Play nagging sound or effect
     confetti({
-      particleCount: 100,
+      particleCount: 30,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#00C6FF', '#00FF9E', '#FFD600', '#FF61D8']
+      colors: ['#FF61D8', '#FF4D4D']
     });
+  }, [distractionCount, momAngerLevel, setMomAngerLevel, momStories.length]);
 
-    // Timer for focus tracking
-    let focusTimer: ReturnType<typeof setInterval> | null = null;
+  // Handle breathing animation
+  useEffect(() => {
+    if (!isTimerRunning) return;
     
-    if (isTimerRunning) {
-      focusTimer = setInterval(() => {
-        setFocusSeconds(prevSeconds => prevSeconds + 1);
-        
-        // Improve mom's mood slightly as you focus
-        if (focusSeconds % 20 === 0 && focusSeconds > 0) {
-          // FIX: Use the current value of momAngerLevel instead of using a callback
-          const newAngerLevel = Math.max(0, momAngerLevel - 1);
-          setMomAngerLevel(newAngerLevel);
-        }
-      }, 1000);
-    }
-    
-    // Breathing animation cycle
+    // Breathing cycle timer
     const breatheTimer = setInterval(() => {
       setBreathePhase(prev => {
         if (prev === 'inhale') return 'hold';
         if (prev === 'hold') return 'exhale';
+        setBreatheCount(breatheCount + 1); // Count completed breath cycles
         return 'inhale';
       });
     }, 2500);
     
-    // Random mom story distraction
-    const distractionTimer = setInterval(() => {
-      // 20% chance every 30 seconds
-      const shouldDistract = Math.random() < 0.2; 
-      
-      if (shouldDistract && isTimerRunning && focusSeconds > 30) {
-        // Show a mom story
-        setShowMomStory(true);
-        setCurrentStoryIndex(prev => (prev + 1) % momStories.length);
-        
-        // FIX: Use the current value of momAngerLevel instead of using a callback
-        const newAngerLevel = Math.min(100, momAngerLevel + 15);
-        setMomAngerLevel(newAngerLevel);
-        
-        // Increase distraction count
-        setDistractionCount(prev => prev + 1);
-      }
-    }, 30000);
+    return () => clearInterval(breatheTimer);
+  }, [isTimerRunning, breathePhase, breatheCount]);
+
+  // Focus timer and random distractions
+  useEffect(() => {
+    if (!isTimerRunning) return;
     
-    // Cleanup
+    // Timer for tracking focus duration
+    const focusTimer = setInterval(() => {
+      setFocusSeconds(prevSeconds => prevSeconds + 1);
+      
+      // Randomly trigger distractions/notifications (10% chance every 15 seconds)
+      if (focusSeconds > 0 && focusSeconds % 15 === 0 && Math.random() < 0.1) {
+        triggerRandomSabotage();
+      }
+      
+      // Improve mom's mood slightly as you focus (every 30 seconds)
+      if (focusSeconds > 0 && focusSeconds % 30 === 0) {
+        setMomAngerLevel(Math.max(0, momAngerLevel - 1));
+      }
+    }, 1000);
+    
+    // Random mom story distraction (20% chance every 45 seconds)
+    const distractionTimer = setInterval(() => {
+      if (Math.random() < 0.2) {
+        showRandomMomStory();
+      }
+    }, 45000);
+    
     return () => {
-      if (focusTimer) clearInterval(focusTimer);
-      clearInterval(breatheTimer);
+      clearInterval(focusTimer);
       clearInterval(distractionTimer);
     };
-  }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel, momStories.length]);
+  }, [isTimerRunning, focusSeconds, momAngerLevel, showRandomMomStory, triggerRandomSabotage]);
+
+  // Notification system
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    
+    // Schedule annoying notifications
+    const notificationTimers = [
+      setTimeout(() => {
+        toast({
+          title: "Mom Says:",
+          description: "Are you ACTUALLY focusing? I don't think so.",
+          duration: 5000,
+        });
+      }, 20000),
+      
+      setTimeout(() => {
+        toast({
+          title: "Mom Says:",
+          description: "Your posture is terrible. Sit up straight!",
+          duration: 5000,
+        });
+      }, 60000),
+      
+      setTimeout(() => {
+        toast({
+          title: "Mom Says:",
+          description: "You call this focusing? I've seen better focus from a goldfish.",
+          duration: 5000,
+        });
+      }, 120000)
+    ];
+    
+    return () => {
+      notificationTimers.forEach(timer => clearTimeout(timer));
+    };
+  }, [isTimerRunning]);
 
   const toggleTimer = () => {
-    setIsTimerRunning(prev => !prev);
+    const newTimerState = !isTimerRunning;
+    setIsTimerRunning(newTimerState);
     
-    if (!isTimerRunning) {
-      // Celebratory confetti for resuming focus
+    if (newTimerState) {
+      // Start focus mode with fanfare
       confetti({
         particleCount: 50,
         spread: 50,
         origin: { y: 0.6 },
         colors: ['#00FF9E']
+      });
+      
+      // First-time notification
+      toast({
+        title: "Focus Mode Activated",
+        description: "Mom will be watching your progress...",
+        duration: 3000,
       });
     }
   };
@@ -106,6 +159,8 @@ const FocusModePage: React.FC = () => {
     setFocusSeconds(0);
     setIsTimerRunning(false);
     setDistractionCount(0);
+    setBreatheCount(0);
+    setBreathePhase('inhale');
     
     // Small confetti burst when resetting
     confetti({
@@ -114,14 +169,25 @@ const FocusModePage: React.FC = () => {
       origin: { y: 0.4 },
       colors: ['#FFD600'],
     });
+    
+    toast({
+      title: "Timer Reset",
+      description: "Starting over? Mom is not impressed.",
+      duration: 3000,
+    });
   };
 
   const closeMomStory = () => {
     setShowMomStory(false);
     
-    // FIX: Use the current value of momAngerLevel instead of using a callback
-    const newAngerLevel = Math.min(100, momAngerLevel + 5);
-    setMomAngerLevel(newAngerLevel);
+    // Mom gets angrier when you dismiss her stories
+    setMomAngerLevel(Math.min(100, momAngerLevel + 10));
+    
+    toast({
+      title: "Mom is Offended",
+      description: "How dare you dismiss my wisdom!",
+      duration: 3000,
+    });
     
     // Small confetti burst when closing
     confetti({
@@ -140,7 +206,9 @@ const FocusModePage: React.FC = () => {
   };
 
   const getMomComment = () => {
-    if (focusSeconds < 60) {
+    if (!isTimerRunning) {
+      return "Too scared to start? Typical.";
+    } else if (focusSeconds < 60) {
       return "Finally decided to focus? Let's see how long you last...";
     } else if (focusSeconds < 300) {
       return "Five minutes? That's all you can manage?";
@@ -217,6 +285,19 @@ const FocusModePage: React.FC = () => {
                     ></div>
                   </div>
                 </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm font-bold mb-1">
+                    <span>Breathing Cycles</span>
+                    <span>{breatheCount}</span>
+                  </div>
+                  <div className="h-4 bg-gray-200 border-2 border-black">
+                    <div 
+                      className="h-full bg-momento-blue transition-all"
+                      style={{ width: `${Math.min(100, breatheCount * 5)}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -247,6 +328,14 @@ const FocusModePage: React.FC = () => {
                 >
                   <Clock className="mr-2 w-5 h-5" /> 
                   Reset Timer
+                </button>
+                
+                <button 
+                  onClick={triggerRandomSabotage}
+                  className="neubrutalism-button w-full bg-momento-red text-white flex items-center justify-center"
+                >
+                  <Focus className="mr-2 w-5 h-5" /> 
+                  Test Notification
                 </button>
               </div>
             </div>
@@ -281,11 +370,19 @@ const FocusModePage: React.FC = () => {
                 </div>
               </div>
               
+              {/* Focus time display */}
+              <div className="text-center mb-8">
+                <span className="font-black text-6xl neubrutalism-box bg-momento-green py-2 px-6 inline-block">
+                  {formatTime(focusSeconds)}
+                </span>
+              </div>
+              
               {/* Mom's focus message */}
               <div className="mt-auto">
                 <MomAvatar 
                   speaking={true} 
                   message={getMomComment()}
+                  interactive={true}
                 />
               </div>
               
