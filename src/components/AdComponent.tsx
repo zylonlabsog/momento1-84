@@ -1,14 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface AdComponentProps {
   onClose: () => void;
+  onAdClick: () => void;
   adIndex?: number;
 }
 
-const AdComponent: React.FC<AdComponentProps> = ({ onClose, adIndex: forcedAdIndex }) => {
+const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: forcedAdIndex }) => {
   const [adIndex] = useState(() => forcedAdIndex !== undefined ? forcedAdIndex : Math.floor(Math.random() * 5));
   const [closingIn, setClosingIn] = useState<number | null>(null);
   
@@ -42,7 +42,6 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, adIndex: forcedAdInd
 
   const currentAd = adTemplates[adIndex];
 
-  // Occasionally show a fake "close in X seconds" countdown
   useEffect(() => {
     if (Math.random() > 0.7) {
       setClosingIn(5);
@@ -79,11 +78,10 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, adIndex: forcedAdInd
       duration: 3000,
     });
     
-    onClose();
+    onAdClick();
   };
 
   const moveCloseButton = (e: React.MouseEvent) => {
-    // 25% chance the close button moves away when hovered
     if (Math.random() < 0.25) {
       const button = e.currentTarget as HTMLButtonElement;
       const container = button.parentElement?.parentElement;
@@ -92,11 +90,9 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, adIndex: forcedAdInd
         const containerRect = container.getBoundingClientRect();
         const buttonRect = button.getBoundingClientRect();
         
-        // Random position within the container that's not overlapping the current position
         let newLeft = Math.random() * (containerRect.width - buttonRect.width);
         let newTop = Math.random() * (containerRect.height - buttonRect.height);
         
-        // Ensure button stays within the container
         newLeft = Math.max(0, Math.min(newLeft, containerRect.width - buttonRect.width));
         newTop = Math.max(0, Math.min(newTop, containerRect.height - buttonRect.height));
         
