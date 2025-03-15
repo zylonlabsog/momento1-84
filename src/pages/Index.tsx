@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MomentoProvider, useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -7,7 +8,7 @@ import SabotageEvents from '@/components/SabotageEvents';
 import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
 import FocusMode from '@/components/FocusMode';
-import { Brain, Coffee, Calendar, Sparkles, Skull } from 'lucide-react';
+import { Brain, Coffee, Calendar, Sparkles, Skull, ListTodo } from 'lucide-react';
 
 const MomentoApp: React.FC = () => {
   const { stage, setStage } = useMomento();
@@ -92,7 +93,7 @@ const MomentoApp: React.FC = () => {
           <div className="flex flex-col items-center justify-center py-10">
             <MomAvatar size="lg" speaking={true} message={welcomeMessage} interactive={true} />
             
-            <div className="mt-16 relative">
+            <div className="mt-16 relative flex flex-col gap-4 items-center">
               <button
                 className="neubrutalism-button text-xl bg-momento-yellow"
                 style={{
@@ -102,7 +103,22 @@ const MomentoApp: React.FC = () => {
                 onMouseEnter={handleStartButtonHover}
                 onClick={handleStartClick}
               >
-                Start Being Productive
+                <ListTodo className="mr-2 w-6 h-6" />
+                Add a Task
+              </button>
+              
+              {/* Recommend a Task button */}
+              <button 
+                onClick={() => {
+                  const uselessTaskButton = document.querySelector('[data-useless-task-button]');
+                  if (uselessTaskButton) {
+                    (uselessTaskButton as HTMLButtonElement).click();
+                  }
+                }}
+                className="neubrutalism-button bg-momento-purple text-white"
+              >
+                <Coffee className="mr-2 w-5 h-5" />
+                Recommend a Task
               </button>
             </div>
             

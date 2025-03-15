@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack, Coffee } from 'lucide-react';
@@ -266,15 +265,16 @@ const MomMoodMeter: React.FC = () => {
         </div>
       )}
       
-      {/* Useless Task Button */}
-      <div className="mt-3 flex justify-center">
+      {/* Task Recommendation Button - Hidden but accessible via trigger */}
+      <div className="mt-3 hidden">
         <Button 
           variant="outline" 
           onClick={handleUselessTaskClick}
           className="border-2 border-black bg-momento-yellow hover:bg-momento-yellow/80 text-black font-bold"
+          data-useless-task-button
         >
           <Coffee className="mr-1" />
-          Recommend a Useless Task
+          Recommend a Task
         </Button>
       </div>
       
