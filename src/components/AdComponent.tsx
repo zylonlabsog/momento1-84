@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import MomAvatar from '@/components/MomAvatar';
 
 interface AdComponentProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ const AdComponent: React.FC<AdComponentProps> = ({
 }) => {
   const [adIndex] = useState(() => forcedAdIndex !== undefined ? forcedAdIndex : Math.floor(Math.random() * 5));
   const [closingIn, setClosingIn] = useState<number | null>(showCloseTimer > 0 ? showCloseTimer : null);
+  const [showingMom, setShowingMom] = useState(false);
   
   const adTemplates = [
     {
@@ -49,7 +51,24 @@ const AdComponent: React.FC<AdComponentProps> = ({
     }
   ];
 
+  const momNaggings = [
+    "When I was your age, I studied 12 hours a day without breaks...",
+    "Your cousin just got accepted to Harvard while studying in worse conditions...",
+    "I saw on Facebook that your friend got promoted. What are YOU doing?",
+    "Remember when you said you'd be a doctor by now? That was 5 years ago...",
+    "I told all my friends you're extremely productive. Don't make me a liar...",
+    "Are you even trying? This is why you'll never succeed in life!",
+    "Your brother finished his PhD at your age. What's your excuse?",
+    "I'm not angry, I'm just disappointed in your lack of focus.",
+    "Back in my day, we didn't have fancy focus apps. We just focused!",
+    "Your sister is managing three kids and a full-time job. You can't even manage this?",
+    "I didn't raise you to be a quitter. But here we are...",
+    "This is why your father and I are disappointed in you.",
+    "You are not studying anyway, now listen to my story...",
+  ];
+
   const currentAd = adTemplates[adIndex];
+  const [currentNagging] = useState(momNaggings[Math.floor(Math.random() * momNaggings.length)]);
 
   useEffect(() => {
     if (closingIn !== null) {
@@ -88,12 +107,15 @@ const AdComponent: React.FC<AdComponentProps> = ({
   };
 
   const handleAdClick = () => {
+    setShowingMom(true);
+  };
+
+  const handleCloseMom = () => {
     toast({
       title: "Mom Says:",
-      description: "I knew you couldn't resist! Let me tell you a story now.",
+      description: "Fine! Go back to pretending to focus!",
       duration: 3000,
     });
-    
     onAdClick();
   };
 
@@ -118,6 +140,36 @@ const AdComponent: React.FC<AdComponentProps> = ({
       }
     }
   };
+
+  if (showingMom) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80 animate-popup">
+        <div className="neubrutalism-box bg-momento-red p-6 max-w-md w-full relative">
+          <div className="flex justify-between items-start mb-4">
+            <h3 className="text-xl font-black uppercase text-white">Mom's Nagging Time</h3>
+            <button 
+              onClick={handleCloseMom} 
+              className="bg-white border-4 border-black p-2"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          
+          <div className="mb-6">
+            <MomAvatar 
+              speaking={true} 
+              message={currentNagging}
+              size="lg"
+            />
+          </div>
+          
+          <button onClick={handleCloseMom} className="neubrutalism-button w-full bg-white">
+            Sorry, I'll Get Back to Work
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80 animate-popup">

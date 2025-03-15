@@ -20,7 +20,7 @@ const FocusMode: React.FC = () => {
       onClick={handleClick}
     >
       <Focus className="mr-2 w-5 h-5" />
-      Enter EXTREMELY EVIL Focus Mode
+      Enter Focus Mode
     </Link>
   );
 };

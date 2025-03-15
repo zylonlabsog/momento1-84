@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -19,7 +18,6 @@ const FocusModePage: React.FC = () => {
   const [focusSeconds, setFocusSeconds] = useState(0);
   const [breathePhase, setBreathePhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [distractionCount, setDistractionCount] = useState(0);
-  const [showMomStory, setShowMomStory] = useState(false);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
@@ -47,28 +45,11 @@ const FocusModePage: React.FC = () => {
     }
   };
 
-  const momStories = [
-    "When I was your age, I studied 12 hours a day without breaks...",
-    "Your cousin just got accepted to Harvard while studying in worse conditions...",
-    "I saw on Facebook that your friend got promoted. What are YOU doing?",
-    "Remember when you said you'd be a doctor by now? That was 5 years ago...",
-    "I told all my friends you're extremely productive. Don't make me a liar...",
-    "Are you even trying? This is why you'll never succeed in life!",
-    "Your brother finished his PhD at your age. What's your excuse?",
-    "I'm not angry, I'm just disappointed in your lack of focus.",
-    "Back in my day, we didn't have fancy focus apps. We just focused!",
-    "Your sister is managing three kids and a full-time job. You can't even manage this?",
-    "I didn't raise you to be a quitter. But here we are...",
-    "This is why your father and I are disappointed in you.",
-    "You are not studying anyway, now listen to my story...",
-  ];
-
   // Calculate real-time progress
   const focusProgress = Math.min(100, (focusSeconds / 1500) * 100); // 25 minutes (1500 seconds) is 100%
 
-  // Show the mom story after an ad is clicked
-  const showRandomMomStory = useCallback(() => {
-    setShowMomStory(true);
+  // Handle ad completion
+  const handleAdCompletion = useCallback(() => {
     setShowAd(false);
     setDistractionCount(prevCount => prevCount + 1);
     
@@ -76,7 +57,7 @@ const FocusModePage: React.FC = () => {
     const newAngerLevel = Math.min(100, momAngerLevel + 15);
     setMomAngerLevel(newAngerLevel);
     
-    // Pause the timer when mom story appears
+    // Pause the timer when distraction occurs
     setIsTimerRunning(false);
   }, [momAngerLevel, setMomAngerLevel]);
 
@@ -145,7 +126,7 @@ const FocusModePage: React.FC = () => {
     
     // Set up recurring ads every 30-60 seconds
     recurringAdTimerRef.current = setInterval(() => {
-      if (isTimerRunning && !showAd && !showMomStory) {
+      if (isTimerRunning && !showAd) {
         // 50% chance to show an unskippable ad
         showAdWithConfig(Math.random() < 0.5);
       }
@@ -154,7 +135,7 @@ const FocusModePage: React.FC = () => {
     return () => {
       clearAllTimers();
     };
-  }, [isTimerRunning, showAd, showMomStory, showAdWithConfig]);
+  }, [isTimerRunning, showAd, showAdWithConfig]);
 
   const toggleTimer = () => {
     const newTimerState = !isTimerRunning;
@@ -163,7 +144,7 @@ const FocusModePage: React.FC = () => {
     if (newTimerState) {
       // First-time notification
       toast({
-        title: "EVIL Focus Mode Activated",
+        title: "Focus Mode Activated",
         description: "Mom will be distracting you very soon...",
         duration: 3000,
       });
@@ -184,10 +165,10 @@ const FocusModePage: React.FC = () => {
       const newAngerLevel = Math.min(100, momAngerLevel + 10);
       setMomAngerLevel(newAngerLevel);
       
-      // 50% chance mom will guilt-trip you when you pause
+      // 50% chance mom will show an ad when you pause
       if (Math.random() < 0.5) {
         setTimeout(() => {
-          showRandomMomStory();
+          showAdWithConfig(true);
         }, 500);
       }
     }
@@ -200,7 +181,6 @@ const FocusModePage: React.FC = () => {
     setBreatheCount(0);
     setBreathePhase('inhale');
     setShowAd(false);
-    setShowMomStory(false);
     setAdIsUnskippable(false);
     
     // Clear any existing timers
@@ -216,44 +196,18 @@ const FocusModePage: React.FC = () => {
     const newAngerLevel = Math.min(100, momAngerLevel + 20);
     setMomAngerLevel(newAngerLevel);
     
-    // Reset always triggers a mom story
+    // Reset always triggers an ad
     setTimeout(() => {
-      showRandomMomStory();
+      showAdWithConfig(true);
     }, 1000);
-  };
-
-  const closeMomStory = () => {
-    setShowMomStory(false);
-    
-    // Mom gets angrier when you dismiss her stories
-    const newAngerLevel = Math.min(100, momAngerLevel + 10);
-    setMomAngerLevel(newAngerLevel);
-    
-    toast({
-      title: "Mom is Offended",
-      description: "How dare you dismiss my wisdom!",
-      duration: 3000,
-    });
-    
-    // 30% chance she'll immediately show another story
-    if (Math.random() < 0.3) {
-      setTimeout(() => {
-        showRandomMomStory();
-      }, 2000);
-    }
   };
 
   const closeAd = () => {
     // Only non-unskippable ads can be closed
     if (!adIsUnskippable) {
       setShowAd(false);
-      showRandomMomStory();
+      triggerRandomSabotage();
     }
-  };
-
-  const handleAdClick = () => {
-    setShowAd(false);
-    showRandomMomStory();
   };
 
   // Format time as mm:ss
@@ -306,7 +260,7 @@ const FocusModePage: React.FC = () => {
 
         <div className="neubrutalism-box bg-momento-red p-6 mb-10">
           <h1 className="text-4xl md:text-5xl font-black text-center uppercase tracking-wide mb-4">
-            EVIL FOCUS MODE
+            FOCUS MODE
           </h1>
           <p className="text-center font-bold text-lg">Because Mom wants to sabotage you</p>
         </div>
@@ -375,7 +329,7 @@ const FocusModePage: React.FC = () => {
                   ) : (
                     <>
                       <Zap className="mr-2 w-5 h-5" /> 
-                      Start Evil Focus
+                      Start Focus
                     </>
                   )}
                 </button>
@@ -453,36 +407,11 @@ const FocusModePage: React.FC = () => {
         </div>
       </div>
       
-      {/* Mom story popup */}
-      {showMomStory && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 animate-popup">
-          <div className="neubrutalism-box bg-momento-red p-6 max-w-md w-full">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-xl font-black uppercase text-white">Mom's Story Time</h3>
-              <button onClick={closeMomStory} className="bg-white border-4 border-black p-2">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="mb-6">
-              <MomAvatar 
-                speaking={true} 
-                message={momStories[Math.floor(Math.random() * momStories.length)]}
-              />
-            </div>
-            
-            <button onClick={closeMomStory} className="neubrutalism-button w-full bg-momento-red border-white text-white">
-              Sorry, I'll Get Back to Work
-            </button>
-          </div>
-        </div>
-      )}
-      
       {/* Advertisement popup */}
       {showAd && (
         <AdComponent 
           onClose={closeAd} 
-          onAdClick={handleAdClick} 
+          onAdClick={handleAdCompletion} 
           adIndex={currentAdIndex} 
           isUnskippable={adIsUnskippable} 
           showCloseTimer={adIsUnskippable ? 0 : 5}
