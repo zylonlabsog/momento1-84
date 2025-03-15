@@ -24,7 +24,8 @@ const MomMoodMeter: React.FC = () => {
       // Immediate small increase in mood with any activity
       setMomMood(current => Math.min(100, current + 5));
       // Activity reduces anger slightly
-      setMomAngerLevel(current => Math.max(0, current - 2));
+      const newAngerLevel = Math.max(0, momAngerLevel - 2);
+      setMomAngerLevel(newAngerLevel);
     };
     
     // Add all activity event listeners
@@ -38,7 +39,7 @@ const MomMoodMeter: React.FC = () => {
         window.removeEventListener(event, updateLastActivity);
       });
     };
-  }, [setMomAngerLevel]);
+  }, [momAngerLevel, setMomAngerLevel]);
   
   // Calculate mom's mood - drop rapidly when idle
   useEffect(() => {
