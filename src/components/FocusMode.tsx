@@ -8,7 +8,7 @@ const FocusMode: React.FC = () => {
   const handleClick = () => {
     toast({
       title: "Warning",
-      description: "Mom's Focus Mode will actively try to distract you and make you feel guilty. Your mood will drop even faster when idle!",
+      description: "Mom's Focus Mode will actively try to distract you. Stay active or Mom's mood will drop VERY quickly!",
       duration: 3000,
     });
   };

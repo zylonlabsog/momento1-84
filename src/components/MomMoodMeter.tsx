@@ -6,19 +6,23 @@ import { Progress } from '@/components/ui/progress';
 
 const MomMoodMeter: React.FC = () => {
   const { sabotageEvents, momAngerLevel, setMomAngerLevel } = useMomento();
-  const [momMood, setMomMood] = useState<number>(50); // 0 = furious, 100 = tolerating you
-  const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Smile className="w-5 h-5" />);
+  const [momMood, setMomMood] = useState<number>(100); // Start at 100% (full)
+  const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
   const [moodDirection, setMoodDirection] = useState<'improving' | 'worsening' | 'stable'>('stable');
-  const [prevMood, setPrevMood] = useState<number>(50);
+  const [prevMood, setPrevMood] = useState<number>(100); // Start at 100%
   const [pulseEffect, setPulseEffect] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   
-  // Track user activity
+  // Track user activity - any interaction increases mood
   useEffect(() => {
-    const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
+    const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click', 'touchmove'];
     
     const updateLastActivity = () => {
       setLastActivityTime(Date.now());
+      // Immediate small increase in mood with any activity
+      setMomMood(current => Math.min(100, current + 5));
+      // Activity reduces anger slightly
+      setMomAngerLevel(current => Math.max(0, current - 2));
     };
     
     // Add all activity event listeners
@@ -32,9 +36,9 @@ const MomMoodMeter: React.FC = () => {
         window.removeEventListener(event, updateLastActivity);
       });
     };
-  }, []);
+  }, [setMomAngerLevel]);
   
-  // Calculate mom's mood based on various factors - now more real-time and affected by idle time
+  // Calculate mom's mood - drop rapidly when idle
   useEffect(() => {
     const moodInterval = setInterval(() => {
       const triggeredEvents = sabotageEvents.filter(event => event.triggered).length;
@@ -43,24 +47,24 @@ const MomMoodMeter: React.FC = () => {
       // Mom gets progressively more annoyed as more events are triggered
       const baseMood = Math.max(0, 80 - percentTriggered);
       
-      // Factor in the anger level from the context - more weight to make it real-time
+      // Factor in the anger level from the context
       let newMood = Math.max(0, Math.min(100, baseMood - (momAngerLevel * 0.7)));
       
       // Check if user is idle
       const currentTime = Date.now();
       const idleTime = currentTime - lastActivityTime;
       
-      // If user is idle for more than 2 seconds, start dropping the mood rapidly
-      if (idleTime > 2000) {
-        // The longer idle, the faster the mood drops
-        const idlePenalty = Math.min(15, Math.floor(idleTime / 1000)); // Max 15 points per interval
+      // If user is idle, drop mood VERY rapidly (faster than before)
+      if (idleTime > 1000) { // Reduced from 2000ms to 1000ms for faster response
+        // The longer idle, the faster the mood drops - more aggressive drop
+        const idlePenalty = Math.min(20, Math.floor(idleTime / 500)); // More penalty, max 20 points per interval
         newMood = Math.max(0, newMood - idlePenalty);
         
         // Update the anger level in the context as well
-        const newAngerLevel = Math.min(100, momAngerLevel + Math.floor(idlePenalty / 3));
+        const newAngerLevel = Math.min(100, momAngerLevel + Math.floor(idlePenalty / 2));
         setMomAngerLevel(newAngerLevel);
       } else {
-        // When active, slowly improve the mood
+        // When active, improve the mood
         newMood = Math.min(100, newMood + 3);
         
         // Activity reduces anger slightly
@@ -86,7 +90,7 @@ const MomMoodMeter: React.FC = () => {
       setPrevMood(momMood);
       setMomMood(newMood);
       
-      // Update mood icon based on current mood - more fine-grained now
+      // Update mood icon based on current mood
       if (newMood < 20) {
         setMoodIcon(<HeartCrack className="w-5 h-5 text-momento-red animate-pulse" />);
       } else if (newMood < 40) {
@@ -98,7 +102,7 @@ const MomMoodMeter: React.FC = () => {
       } else {
         setMoodIcon(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
       }
-    }, 1000); // Update every second to make the effect more noticeable
+    }, 800); // Reduced from 1000ms to 800ms for more frequent updates
     
     return () => clearInterval(moodInterval);
   }, [sabotageEvents, momAngerLevel, lastActivityTime, momMood, setMomAngerLevel]);

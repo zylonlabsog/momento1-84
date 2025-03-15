@@ -48,7 +48,7 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [criticisms] = useState<MomCriticism[]>(CRITICISMS);
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
-  const [momAngerLevel, setMomAngerLevel] = useState<number>(0);
+  const [momAngerLevel, setMomAngerLevel] = useState<number>(0); // Start with zero anger
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
 
   const triggerCriticism = () => {
@@ -105,6 +105,9 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   useEffect(() => {
+    // Reset mom's anger level on component mount
+    setMomAngerLevel(0);
+    
     if (stage === 'welcome') {
       // Reset mom's anger when returning to welcome screen
       setMomAngerLevel(0);
