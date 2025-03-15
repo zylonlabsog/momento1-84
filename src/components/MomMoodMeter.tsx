@@ -2,67 +2,106 @@
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 const MomMoodMeter: React.FC = () => {
-  const { sabotageEvents, momAngerLevel } = useMomento();
+  const { sabotageEvents, momAngerLevel, setMomAngerLevel } = useMomento();
   const [momMood, setMomMood] = useState<number>(50); // 0 = furious, 100 = tolerating you
   const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Smile className="w-5 h-5" />);
   const [moodDirection, setMoodDirection] = useState<'improving' | 'worsening' | 'stable'>('stable');
   const [prevMood, setPrevMood] = useState<number>(50);
   const [pulseEffect, setPulseEffect] = useState(false);
+  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   
-  // Calculate mom's mood based on various factors - now more real-time
+  // Track user activity
   useEffect(() => {
-    const triggeredEvents = sabotageEvents.filter(event => event.triggered).length;
-    const percentTriggered = (triggeredEvents / sabotageEvents.length) * 100;
+    const activityEvents = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
     
-    // Mom gets progressively more annoyed as more events are triggered
-    const baseMood = Math.max(0, 80 - percentTriggered);
+    const updateLastActivity = () => {
+      setLastActivityTime(Date.now());
+    };
     
-    // Factor in the anger level from the context - more weight to make it real-time
-    const newMood = Math.max(0, Math.min(100, baseMood - (momAngerLevel * 0.7)));
+    // Add all activity event listeners
+    activityEvents.forEach(event => {
+      window.addEventListener(event, updateLastActivity);
+    });
     
-    // Determine if mood is improving or worsening
-    if (newMood > prevMood + 2) {
-      setMoodDirection('improving');
-      // Pulse effect when mood improves significantly
-      setPulseEffect(true);
-      setTimeout(() => setPulseEffect(false), 1000);
-    } else if (newMood < prevMood - 2) {
-      setMoodDirection('worsening');
-      // Pulse effect when mood worsens significantly
-      setPulseEffect(true);
-      setTimeout(() => setPulseEffect(false), 1000);
-    } else {
-      setMoodDirection('stable');
-    }
-    
-    setPrevMood(momMood);
-    setMomMood(newMood);
-    
-    // Update mood icon based on current mood - more fine-grained now
-    if (newMood < 20) {
-      setMoodIcon(<HeartCrack className="w-5 h-5 text-momento-red animate-pulse" />);
-    } else if (newMood < 40) {
-      setMoodIcon(<Frown className="w-5 h-5 text-momento-red" />);
-    } else if (newMood < 60) {
-      setMoodIcon(<ThermometerSun className="w-5 h-5 text-momento-yellow" />);
-    } else if (newMood < 80) {
-      setMoodIcon(<Smile className="w-5 h-5 text-momento-green" />);
-    } else {
-      setMoodIcon(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
-    }
-    
-    // More subtle random mood swings to make the meter feel alive
-    const moodSwingInterval = setInterval(() => {
-      setMomMood(prevMood => {
-        const swing = Math.random() * 4 - 2; // -2 to +2
-        return Math.max(0, Math.min(100, prevMood + swing));
+    return () => {
+      // Clean up event listeners
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, updateLastActivity);
       });
-    }, 2000); // More frequent updates
+    };
+  }, []);
+  
+  // Calculate mom's mood based on various factors - now more real-time and affected by idle time
+  useEffect(() => {
+    const moodInterval = setInterval(() => {
+      const triggeredEvents = sabotageEvents.filter(event => event.triggered).length;
+      const percentTriggered = (triggeredEvents / sabotageEvents.length) * 100;
+      
+      // Mom gets progressively more annoyed as more events are triggered
+      const baseMood = Math.max(0, 80 - percentTriggered);
+      
+      // Factor in the anger level from the context - more weight to make it real-time
+      let newMood = Math.max(0, Math.min(100, baseMood - (momAngerLevel * 0.7)));
+      
+      // Check if user is idle
+      const currentTime = Date.now();
+      const idleTime = currentTime - lastActivityTime;
+      
+      // If user is idle for more than 2 seconds, start dropping the mood rapidly
+      if (idleTime > 2000) {
+        // The longer idle, the faster the mood drops
+        const idlePenalty = Math.min(15, Math.floor(idleTime / 1000)); // Max 15 points per interval
+        newMood = Math.max(0, newMood - idlePenalty);
+        
+        // Update the anger level in the context as well
+        const newAngerLevel = Math.min(100, momAngerLevel + Math.floor(idlePenalty / 3));
+        setMomAngerLevel(newAngerLevel);
+      } else {
+        // When active, slowly improve the mood
+        newMood = Math.min(100, newMood + 3);
+        
+        // Activity reduces anger slightly
+        const newAngerLevel = Math.max(0, momAngerLevel - 1);
+        setMomAngerLevel(newAngerLevel);
+      }
+      
+      // Determine if mood is improving or worsening
+      if (newMood > momMood + 2) {
+        setMoodDirection('improving');
+        // Pulse effect when mood improves significantly
+        setPulseEffect(true);
+        setTimeout(() => setPulseEffect(false), 1000);
+      } else if (newMood < momMood - 2) {
+        setMoodDirection('worsening');
+        // Pulse effect when mood worsens significantly
+        setPulseEffect(true);
+        setTimeout(() => setPulseEffect(false), 1000);
+      } else {
+        setMoodDirection('stable');
+      }
+      
+      setPrevMood(momMood);
+      setMomMood(newMood);
+      
+      // Update mood icon based on current mood - more fine-grained now
+      if (newMood < 20) {
+        setMoodIcon(<HeartCrack className="w-5 h-5 text-momento-red animate-pulse" />);
+      } else if (newMood < 40) {
+        setMoodIcon(<Frown className="w-5 h-5 text-momento-red" />);
+      } else if (newMood < 60) {
+        setMoodIcon(<ThermometerSun className="w-5 h-5 text-momento-yellow" />);
+      } else if (newMood < 80) {
+        setMoodIcon(<Smile className="w-5 h-5 text-momento-green" />);
+      } else {
+        setMoodIcon(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
+      }
+    }, 1000); // Update every second to make the effect more noticeable
     
-    return () => clearInterval(moodSwingInterval);
-  }, [sabotageEvents, momAngerLevel]);
+    return () => clearInterval(moodInterval);
+  }, [sabotageEvents, momAngerLevel, lastActivityTime, momMood, setMomAngerLevel]);
   
   // Get color based on mood
   const getMoodColor = () => {
@@ -104,19 +143,11 @@ const MomMoodMeter: React.FC = () => {
         </span>
       </div>
       
-      <div className="w-full h-4 bg-white border-2 border-black overflow-hidden relative">
-        <div 
-          className={`h-full ${getMoodColor()} transition-all duration-300`}
-          style={{ width: `${momMood}%` }}
-        ></div>
-        
-        {/* Tick marks for mood levels */}
-        <div className="absolute top-0 left-0 w-full h-full flex justify-between pointer-events-none">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-full w-1 bg-black opacity-30"></div>
-          ))}
-        </div>
-      </div>
+      <Progress 
+        value={momMood} 
+        className="h-4 border-2 border-black" 
+        indicatorClassName={`${getMoodColor()} transition-all duration-300`}
+      />
       
       {momMood < 20 && (
         <div className="flex items-center mt-1">
