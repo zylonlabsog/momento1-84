@@ -51,9 +51,13 @@ const CallMomPage: React.FC = () => {
             </div>
           </div>
           
-          <div className="call-mom-container min-h-[400px] border-4 border-black">
-            {/* ElevenLabs Conversation Widget */}
-            <elevenlabs-convai agent-id="4OTApQQqwhoTsoOgvsTx"></elevenlabs-convai>
+          <div className="call-mom-container min-h-[400px] border-4 border-black relative overflow-hidden">
+            <iframe 
+              src="https://elevenlabs.io/speech-synthesis" 
+              className="w-full h-[400px] border-0"
+              title="Call with Mom"
+              allowFullScreen
+            ></iframe>
           </div>
         </div>
       </div>
