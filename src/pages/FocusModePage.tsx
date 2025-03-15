@@ -341,44 +341,6 @@ const FocusModePage: React.FC = () => {
     }
   };
 
-  // Function to manually trigger an ad (for testing)
-  const forceShowAd = () => {
-    if (adSequenceRunning) {
-      toast({
-        title: "Ad Sequence Already Running",
-        description: "Please wait for the current sequence to finish",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    setAdSequenceComplete(false);
-    setCurrentAdIndex(0);
-    startAdSequence();
-    
-    toast({
-      title: "Ad Sequence Started",
-      description: "3 ads will show over 20 seconds, then Mom's story!",
-      duration: 3000,
-    });
-  };
-
-  // Function to manually trigger mom story (for testing)
-  const forceShowMomStory = () => {
-    setIsTimerRunning(false);
-    clearAllTimers();
-    setAdSequenceRunning(false);
-    setAdSequenceComplete(true);
-    setShowAd(false);
-    showRandomMomStory();
-    
-    toast({
-      title: "Mom Story Triggered",
-      description: "Mom has lots of wisdom to share!",
-      duration: 3000,
-    });
-  };
-
   return (
     <div className="min-h-screen bg-[#f0f0f0] p-6 cursor-default overflow-hidden relative">
       {/* Decorative background elements */}
@@ -503,30 +465,6 @@ const FocusModePage: React.FC = () => {
                 >
                   <Clock className="mr-2 w-5 h-5" /> 
                   Reset Timer
-                </button>
-                
-                <button 
-                  onClick={triggerRandomSabotage}
-                  className="neubrutalism-button w-full bg-momento-red text-white flex items-center justify-center"
-                >
-                  <Focus className="mr-2 w-5 h-5" /> 
-                  Test Notification
-                </button>
-                
-                <button 
-                  onClick={forceShowAd}
-                  className="neubrutalism-button w-full bg-momento-green text-black flex items-center justify-center"
-                >
-                  <Focus className="mr-2 w-5 h-5" /> 
-                  Show Ad Sequence
-                </button>
-                
-                <button 
-                  onClick={forceShowMomStory}
-                  className="neubrutalism-button w-full bg-momento-blue text-black flex items-center justify-center"
-                >
-                  <Focus className="mr-2 w-5 h-5" /> 
-                  Show Mom Story
                 </button>
               </div>
             </div>
