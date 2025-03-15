@@ -95,7 +95,7 @@ const MomentoApp: React.FC = () => {
             
             <div className="mt-16 relative flex flex-col gap-4 items-center">
               <button
-                className="neubrutalism-button text-xl bg-momento-yellow"
+                className="neubrutalism-button text-xl bg-momento-yellow flex items-center"
                 style={{
                   transform: `translate(${buttonPosition.x}px, ${buttonPosition.y}px)`,
                   transition: 'transform 0.2s ease-out'
@@ -115,7 +115,7 @@ const MomentoApp: React.FC = () => {
                     (uselessTaskButton as HTMLButtonElement).click();
                   }
                 }}
-                className="neubrutalism-button bg-momento-purple text-white"
+                className="neubrutalism-button bg-momento-purple text-white flex items-center"
               >
                 <Coffee className="mr-2 w-5 h-5" />
                 Recommend a Task
