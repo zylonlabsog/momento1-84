@@ -53,9 +53,10 @@ const CallMomPage: React.FC = () => {
           
           <div className="call-mom-container min-h-[400px] border-4 border-black relative overflow-hidden">
             <iframe 
-              src="https://elevenlabs.io/speech-synthesis" 
+              src="https://elevenlabs.io/voice-lab" 
               className="w-full h-[400px] border-0"
               title="Call with Mom"
+              allow="microphone"
               allowFullScreen
             ></iframe>
           </div>
