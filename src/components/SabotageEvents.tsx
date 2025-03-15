@@ -4,6 +4,7 @@ import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
 import { toast } from '@/components/ui/use-toast';
 import { X } from 'lucide-react';
+import { audioManager } from '@/utils/audioManager';
 
 const SabotageEvents: React.FC = () => {
   const { stage, setStage, triggerRandomSabotage } = useMomento();
@@ -21,13 +22,16 @@ const SabotageEvents: React.FC = () => {
   useEffect(() => {
     if (stage === 'distraction') {
       setShowDistraction(true);
+      audioManager.playSound('sabotage');
     } else if (stage === 'guiltTrip') {
       setShowGuiltTrip(true);
+      audioManager.playSound('angry');
       
       // Cycle through guilt messages
       const interval = setInterval(() => {
         setCurrentGuiltMessage((prev) => (prev + 1) % guiltMessages.length);
         triggerRandomSabotage(); // Extra sabotage in guilt trip mode!
+        audioManager.playSound('error');
       }, 3000);
       
       return () => clearInterval(interval);
@@ -35,12 +39,14 @@ const SabotageEvents: React.FC = () => {
   }, [stage]);
 
   const handleDistractionClose = () => {
+    audioManager.playSound('click');
     setShowDistraction(false);
     // Return to fake choice
     setStage('fakeChoice');
   };
 
   const handleGuiltTripAction = () => {
+    audioManager.playSound('click');
     setShowGuiltTrip(false);
     // Return to the beginning
     setStage('taskInput');

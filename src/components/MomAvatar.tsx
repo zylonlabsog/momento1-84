@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import confetti from 'canvas-confetti';
-import { playSoundWithCooldown } from '@/utils/soundEffects';
+import { audioManager } from '@/utils/audioManager';
 
 interface MomAvatarProps {
   size?: 'sm' | 'md' | 'lg';
@@ -38,26 +38,26 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       setAnimation('animate-popup');
     } else if (stage === 'guiltTrip') {
       setAnimation('animate-shake-infinite');
-      playSoundWithCooldown('angry');
+      audioManager.playSoundWithCooldown('angry');
     } else if (momAngerLevel > 80) {
       setAnimation('animate-shake-infinite');
       setFaceColor('bg-momento-red bg-opacity-30');
       if (Date.now() - lastEmoteChange > 5000) {
-        playSoundWithCooldown('angry');
+        audioManager.playSoundWithCooldown('angry');
         setLastEmoteChange(Date.now());
       }
     } else if (momAngerLevel > 60) {
       setAnimation('animate-jitter-slow');
       setFaceColor('bg-momento-pink bg-opacity-90');
       if (Date.now() - lastEmoteChange > 10000) {
-        playSoundWithCooldown('sigh');
+        audioManager.playSoundWithCooldown('sigh');
         setLastEmoteChange(Date.now());
       }
     } else if (momAngerLevel < 20 && speaking) {
       setAnimation('animate-float');
       setFaceColor('bg-momento-pink');
       if (Date.now() - lastEmoteChange > 15000) {
-        playSoundWithCooldown('happy');
+        audioManager.playSoundWithCooldown('happy');
         setLastEmoteChange(Date.now());
       }
     } else {
@@ -77,13 +77,13 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       
       if (momAngerLevel > 70) {
         emotions = ['annoyed', 'judgmental', 'disappointed', 'furious'];
-        playSoundWithCooldown('angry');
+        audioManager.playSoundWithCooldown('angry');
       } else if (momAngerLevel > 40) {
         emotions = ['annoyed', 'judgmental', 'disappointed'];
-        if (Math.random() > 0.7) playSoundWithCooldown('sigh');
+        if (Math.random() > 0.7) audioManager.playSoundWithCooldown('sigh');
       } else {
         emotions = ['', 'annoyed', '', 'judgmental', '', 'proud'];
-        if (Math.random() > 0.9) playSoundWithCooldown('happy');
+        if (Math.random() > 0.9) audioManager.playSoundWithCooldown('happy');
       }
       
       const newEmote = emotions[Math.floor(Math.random() * emotions.length)];
@@ -114,11 +114,11 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
         colors: ['#FF4D4D', '#FFD600', '#FF61D8']
       });
       
-      playSoundWithCooldown('angry');
+      audioManager.playSound('angry');
       triggerRandomSabotage();
       setPokeCount(0);
     } else {
-      playSoundWithCooldown('sigh');
+      audioManager.playSound('sigh');
     }
   };
 

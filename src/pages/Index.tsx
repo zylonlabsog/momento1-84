@@ -8,7 +8,9 @@ import SabotageEvents from '@/components/SabotageEvents';
 import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
 import FocusMode from '@/components/FocusMode';
+import SoundControls from '@/components/SoundControls';
 import { Brain, Coffee, Calendar, Sparkles, Skull, ListTodo } from 'lucide-react';
+import { audioManager } from '@/utils/audioManager';
 
 const MomentoApp: React.FC = () => {
   const { stage, setStage } = useMomento();
@@ -25,6 +27,9 @@ const MomentoApp: React.FC = () => {
       setButtonPosition({ x: newX, y: newY });
       setButtonMoved(true);
       
+      // Play sound effect
+      audioManager.playSound('error');
+      
       // Reset after short delay so user can try again
       setTimeout(() => {
         setButtonMoved(false);
@@ -33,6 +38,7 @@ const MomentoApp: React.FC = () => {
   };
   
   const handleStartClick = () => {
+    audioManager.playSound('click');
     setStage('taskInput');
   };
   
@@ -41,6 +47,11 @@ const MomentoApp: React.FC = () => {
     document.body.classList.add('animate-jitter');
     setTimeout(() => {
       document.body.classList.remove('animate-jitter');
+    }, 1000);
+    
+    // Try to play background music on initial load
+    setTimeout(() => {
+      audioManager.playBackgroundMusic();
     }, 1000);
   }, []);
 
@@ -85,6 +96,11 @@ const MomentoApp: React.FC = () => {
           <div className="mt-4">
             <MomMoodMeter />
           </div>
+          
+          {/* Sound Controls */}
+          <div className="mt-4 flex justify-center">
+            <SoundControls />
+          </div>
         </div>
       </header>
       
@@ -110,6 +126,7 @@ const MomentoApp: React.FC = () => {
               {/* Recommend a Task button */}
               <button 
                 onClick={() => {
+                  audioManager.playSound('click');
                   const uselessTaskButton = document.querySelector('[data-useless-task-button]');
                   if (uselessTaskButton) {
                     (uselessTaskButton as HTMLButtonElement).click();
@@ -130,7 +147,10 @@ const MomentoApp: React.FC = () => {
             {/* Fun Neubrutalism UI Elements */}
             <div className="w-full max-w-md mt-16">
               <button 
-                onClick={() => setShowTips(!showTips)}
+                onClick={() => {
+                  setShowTips(!showTips);
+                  audioManager.playSound('click');
+                }}
                 className="neubrutalism-button w-full bg-momento-purple mb-4"
               >
                 {showTips ? "Hide Mom's Tips" : "Show Mom's Tips"}
