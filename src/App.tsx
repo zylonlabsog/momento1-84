@@ -6,6 +6,7 @@ import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import FocusModePage from '@/pages/FocusModePage';
 import MomCrashPage from '@/pages/MomCrashPage';
+import CallMomPage from '@/pages/CallMomPage';
 import { MomentoProvider } from '@/context/MomentoContext';
 import './App.css';
 
@@ -16,6 +17,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/focus" element={<FocusModePage />} />
         <Route path="/mom-crashed" element={<MomCrashPage />} />
+        <Route path="/call-mom" element={<CallMomPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

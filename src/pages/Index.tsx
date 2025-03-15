@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MomentoProvider, useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -9,8 +8,9 @@ import InstallAppBanner from '@/components/InstallAppBanner';
 import MomMoodMeter from '@/components/MomMoodMeter';
 import FocusMode from '@/components/FocusMode';
 import SoundControls from '@/components/SoundControls';
-import { Brain, Coffee, Calendar, Sparkles, Skull, ListTodo } from 'lucide-react';
+import { Brain, Coffee, Calendar, Sparkles, Skull, ListTodo, Phone } from 'lucide-react';
 import { audioManager } from '@/utils/audioManager';
+import { Link } from 'react-router-dom';
 
 const MomentoApp: React.FC = () => {
   const { stage, setStage } = useMomento();
@@ -19,7 +19,6 @@ const MomentoApp: React.FC = () => {
   const [buttonMoved, setButtonMoved] = useState(false);
   const [showTips, setShowTips] = useState(false);
   
-  // Move start button away from cursor when hovered
   const handleStartButtonHover = () => {
     if (!buttonMoved) {
       const newX = Math.floor(Math.random() * 100) - 50;
@@ -27,10 +26,8 @@ const MomentoApp: React.FC = () => {
       setButtonPosition({ x: newX, y: newY });
       setButtonMoved(true);
       
-      // Play sound effect
       audioManager.playSound('error');
       
-      // Reset after short delay so user can try again
       setTimeout(() => {
         setButtonMoved(false);
       }, 700);
@@ -42,27 +39,23 @@ const MomentoApp: React.FC = () => {
     setStage('taskInput');
   };
   
-  // Add a glitchy screen shake on load
   useEffect(() => {
     document.body.classList.add('animate-jitter');
     setTimeout(() => {
       document.body.classList.remove('animate-jitter');
     }, 1000);
     
-    // Try to play background music on initial load
     setTimeout(() => {
       audioManager.playBackgroundMusic();
     }, 1000);
   }, []);
-
-  // Update the title to include "The To-Do App That Judges You Like Your Mom"
+  
   useEffect(() => {
     document.title = "Momento - The To-Do App That Judges You Like Your Mom";
   }, []);
   
   return (
     <div className="min-h-screen p-6 cursor-default relative overflow-hidden">
-      {/* Background decorative elements */}
       <div className="floating-shape w-16 h-16 bg-momento-yellow top-[10%] left-[5%]"></div>
       <div className="floating-shape w-10 h-10 bg-momento-pink top-[30%] right-[8%]"></div>
       <div className="floating-shape w-14 h-14 bg-momento-blue bottom-[15%] left-[10%]"></div>
@@ -85,19 +78,16 @@ const MomentoApp: React.FC = () => {
           </h1>
           <p className="text-center font-bold text-lg mt-2">The To-Do App That Judges You Like Your Mom</p>
           
-          {/* Creator attribution with evil emoji */}
           <div className="mt-2 flex items-center justify-center gap-2">
             <p className="text-center font-bold text-sm md:text-base bg-momento-black bg-opacity-10 px-3 py-1 rounded-full">
               Made by Jagrit Sachdev <Skull className="w-4 h-4 inline-block animate-pulse text-momento-red" /> The Best Productivity App You'll Ever Find
             </p>
           </div>
           
-          {/* Mom Mood Meter */}
           <div className="mt-4">
             <MomMoodMeter />
           </div>
           
-          {/* Sound Controls */}
           <div className="mt-4 flex justify-center">
             <SoundControls />
           </div>
@@ -123,7 +113,6 @@ const MomentoApp: React.FC = () => {
                 Add a Task
               </button>
               
-              {/* Recommend a Task button */}
               <button 
                 onClick={() => {
                   audioManager.playSound('click');
@@ -137,14 +126,21 @@ const MomentoApp: React.FC = () => {
                 <Coffee className="mr-2 w-5 h-5" />
                 Recommend a Task
               </button>
+              
+              <Link 
+                to="/call-mom"
+                className="neubrutalism-button bg-momento-red text-white flex items-center"
+                onClick={() => audioManager.playSound('click')}
+              >
+                <Phone className="mr-2 w-5 h-5" />
+                Call Mom
+              </Link>
             </div>
             
-            {/* Focus Mode Button - Available in welcome screen */}
             <div className="mt-8">
               <FocusMode />
             </div>
             
-            {/* Fun Neubrutalism UI Elements */}
             <div className="w-full max-w-md mt-16">
               <button 
                 onClick={() => {
@@ -190,7 +186,6 @@ const MomentoApp: React.FC = () => {
         {stage === 'taskInput' && (
           <>
             <TaskInput />
-            {/* Focus Mode Button - Also available in task input screen */}
             <div className="flex justify-center mt-6">
               <FocusMode />
             </div>
@@ -199,7 +194,6 @@ const MomentoApp: React.FC = () => {
         
         {stage === 'fakeChoice' && <FakeChoice />}
         
-        {/* Sabotage events are always present but conditionally displayed */}
         <SabotageEvents />
       </main>
       
@@ -208,7 +202,6 @@ const MomentoApp: React.FC = () => {
           Mom is watching your (lack of) productivity.
         </p>
         
-        {/* Cool Neubrutalism decorative elements */}
         <div className="flex justify-center gap-3 mt-6">
           {[...Array(5)].map((_, i) => (
             <div 
