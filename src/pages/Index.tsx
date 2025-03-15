@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MomentoProvider, useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -50,10 +49,18 @@ const MomentoApp: React.FC = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-[#f0f0f0] p-6 cursor-default">
+    <div className="min-h-screen p-6 cursor-default relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="floating-shape w-16 h-16 bg-momento-yellow top-[10%] left-[5%]"></div>
+      <div className="floating-shape w-10 h-10 bg-momento-pink top-[30%] right-[8%]"></div>
+      <div className="floating-shape w-14 h-14 bg-momento-blue bottom-[15%] left-[10%]"></div>
+      <div className="floating-shape w-12 h-12 bg-momento-green bottom-[25%] right-[12%]"></div>
+      <div className="floating-shape w-8 h-8 bg-momento-red top-[60%] left-[15%]"></div>
+      <div className="floating-shape w-20 h-20 bg-momento-purple opacity-20 bottom-[10%] right-[5%]"></div>
+      
       <InstallAppBanner />
       
-      <header className="max-w-4xl mx-auto pt-6 pb-10">
+      <header className="max-w-4xl mx-auto pt-6 pb-10 relative z-10">
         <div className="neubrutalism-box bg-momento-blue p-4 mb-6">
           <h1 className="text-4xl md:text-6xl font-black text-center uppercase tracking-wide">
             <span className="inline-block animate-float">M</span>
@@ -80,7 +87,7 @@ const MomentoApp: React.FC = () => {
         </div>
       </header>
       
-      <main className="max-w-4xl mx-auto">
+      <main className="max-w-4xl mx-auto relative z-10">
         {stage === 'welcome' && (
           <div className="flex flex-col items-center justify-center py-10">
             <MomAvatar size="lg" speaking={true} message={welcomeMessage} interactive={true} />
@@ -160,7 +167,7 @@ const MomentoApp: React.FC = () => {
         <SabotageEvents />
       </main>
       
-      <footer className="mt-10 max-w-4xl mx-auto text-center">
+      <footer className="mt-10 max-w-4xl mx-auto text-center relative z-10">
         <p className="font-medium text-gray-700">
           Mom is watching your (lack of) productivity.
         </p>
