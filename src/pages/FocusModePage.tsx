@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
@@ -61,12 +62,8 @@ const FocusModePage: React.FC = () => {
   // Function to show a random mom story as a distraction
   const showRandomMomStory = useCallback(() => {
     setShowMomStory(true);
-    // Choose the "not studying anyway" message
-    const storyIndex = momStories.findIndex(story => 
-      story.includes("You are not studying anyway, now listen to my story")
-    );
-    // Fallback to the last story if the specific one isn't found
-    const index = storyIndex !== -1 ? storyIndex : momStories.length - 1;
+    // Choose a random story
+    const randomIndex = Math.floor(Math.random() * momStories.length);
     setDistractionCount(prevCount => prevCount + 1);
     
     // Use direct value rather than callback function to avoid TypeScript errors
@@ -153,20 +150,49 @@ const FocusModePage: React.FC = () => {
     };
   }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel]);
 
-  // Start ad sequence when timer starts
+  // IMPROVED: Set up recurring distractions while focusing
   useEffect(() => {
-    if (isTimerRunning && !adSequenceRunning && !adSequenceComplete) {
-      const adSequenceTimer = setTimeout(() => {
+    if (!isTimerRunning) return;
+    
+    // Schedule first ad sequence to appear after just 10 seconds
+    const initialAdTimer = setTimeout(() => {
+      if (isTimerRunning && !adSequenceRunning) {
         startAdSequence();
-      }, 5000); // Start ad sequence after 5 seconds of focus
+      }
+    }, 10000); // Start first ad sequence after 10 seconds
+    
+    // Set up recurring ads every 30-45 seconds
+    const recurringAdTimer = setInterval(() => {
+      if (isTimerRunning && !adSequenceRunning && !showMomStory) {
+        // 70% chance to show ad, 30% chance to show mom story directly
+        if (Math.random() < 0.7) {
+          startAdSequence();
+        } else {
+          showRandomMomStory();
+        }
+      }
+    }, Math.floor(Math.random() * 15000) + 30000); // Random interval between 30-45 seconds
+    
+    // Make mom angrier over time - she expects progress!
+    const momAngerTimer = setInterval(() => {
+      const newAngerLevel = Math.min(100, momAngerLevel + 3);
+      setMomAngerLevel(newAngerLevel);
       
-      return () => clearTimeout(adSequenceTimer);
-    }
+      // Random sabotage
+      if (Math.random() < 0.4) {
+        triggerRandomSabotage();
+      }
+    }, 15000); // Every 15 seconds
+    
+    adTimersRef.current.push(initialAdTimer, recurringAdTimer, momAngerTimer);
     
     return () => {
-      // No cleanup needed if condition not met
+      clearTimeout(initialAdTimer);
+      clearInterval(recurringAdTimer);
+      clearInterval(momAngerTimer);
     };
-  }, [isTimerRunning, startAdSequence, adSequenceRunning, adSequenceComplete]);
+  }, [isTimerRunning, adSequenceRunning, showMomStory, startAdSequence, 
+      showRandomMomStory, momAngerLevel, setMomAngerLevel, triggerRandomSabotage]);
 
   // Notification system
   useEffect(() => {
@@ -219,10 +245,28 @@ const FocusModePage: React.FC = () => {
       // Reset ad sequence state
       setAdSequenceComplete(false);
       setCurrentAdIndex(0);
+      
+      // IMPROVED: Show first ad almost immediately
+      setTimeout(() => {
+        if (isTimerRunning) {
+          startAdSequence();
+        }
+      }, 5000); // Show first ad after just 5 seconds
     } else {
       // Pause all timers when stopping
       clearAllTimers();
       setAdSequenceRunning(false);
+      
+      // Mom gets angry when you stop focusing
+      const newAngerLevel = Math.min(100, momAngerLevel + 10);
+      setMomAngerLevel(newAngerLevel);
+      
+      // 50% chance mom will guilt-trip you when you pause
+      if (Math.random() < 0.5) {
+        setTimeout(() => {
+          showRandomMomStory();
+        }, 500);
+      }
     }
   };
 
@@ -246,6 +290,15 @@ const FocusModePage: React.FC = () => {
       description: "Starting over? Mom is not impressed.",
       duration: 3000,
     });
+    
+    // IMPROVED: Mom gets very angry when you reset
+    const newAngerLevel = Math.min(100, momAngerLevel + 20);
+    setMomAngerLevel(newAngerLevel);
+    
+    // Reset always triggers a mom story
+    setTimeout(() => {
+      showRandomMomStory();
+    }, 1000);
   };
 
   const closeMomStory = () => {
@@ -260,6 +313,13 @@ const FocusModePage: React.FC = () => {
       description: "How dare you dismiss my wisdom!",
       duration: 3000,
     });
+    
+    // IMPROVED: 30% chance she'll immediately show another story
+    if (Math.random() < 0.3) {
+      setTimeout(() => {
+        showRandomMomStory();
+      }, 2000);
+    }
   };
 
   const closeAd = () => {
@@ -546,7 +606,7 @@ const FocusModePage: React.FC = () => {
             <div className="mb-6">
               <MomAvatar 
                 speaking={true} 
-                message="You are not studying anyway, now listen to my story..."
+                message={momStories[Math.floor(Math.random() * momStories.length)]}
               />
             </div>
             
