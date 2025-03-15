@@ -24,11 +24,11 @@ const FocusModePage: React.FC = () => {
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
-  const [adSequenceRunning, setAdSequenceRunning] = useState(false);
-  const [adSequenceComplete, setAdSequenceComplete] = useState(false);
+  const [adIsUnskippable, setAdIsUnskippable] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const adTimersRef = useRef<NodeJS.Timeout[]>([]);
-
+  const initialAdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const recurringAdTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
   // Clear all timers function
   const clearAllTimers = () => {
     if (timerRef.current) {
@@ -36,8 +36,15 @@ const FocusModePage: React.FC = () => {
       timerRef.current = null;
     }
     
-    adTimersRef.current.forEach(timer => clearTimeout(timer));
-    adTimersRef.current = [];
+    if (initialAdTimerRef.current) {
+      clearTimeout(initialAdTimerRef.current);
+      initialAdTimerRef.current = null;
+    }
+    
+    if (recurringAdTimerRef.current) {
+      clearInterval(recurringAdTimerRef.current);
+      recurringAdTimerRef.current = null;
+    }
   };
 
   const momStories = [
@@ -59,11 +66,10 @@ const FocusModePage: React.FC = () => {
   // Calculate real-time progress
   const focusProgress = Math.min(100, (focusSeconds / 1500) * 100); // 25 minutes (1500 seconds) is 100%
 
-  // Function to show a random mom story as a distraction
+  // Show the mom story after an ad is clicked
   const showRandomMomStory = useCallback(() => {
     setShowMomStory(true);
-    // Choose a random story
-    const randomIndex = Math.floor(Math.random() * momStories.length);
+    setShowAd(false);
     setDistractionCount(prevCount => prevCount + 1);
     
     // Use direct value rather than callback function to avoid TypeScript errors
@@ -72,46 +78,19 @@ const FocusModePage: React.FC = () => {
     
     // Pause the timer when mom story appears
     setIsTimerRunning(false);
-  }, [momAngerLevel, setMomAngerLevel, momStories]);
+  }, [momAngerLevel, setMomAngerLevel]);
 
-  // Function to display an advertisement
-  const showAdWithIndex = useCallback((index: number) => {
-    if (adSequenceComplete) return;
-    
-    setCurrentAdIndex(index);
+  // Show the ad
+  const showAdWithConfig = useCallback((unskippable: boolean) => {
+    setCurrentAdIndex(Math.floor(Math.random() * 5));
     setShowAd(true);
+    setAdIsUnskippable(unskippable);
     setDistractionCount(prevCount => prevCount + 1);
     
     // Increase mom's anger level with each ad (she's monetizing your focus time)
     const newAngerLevel = Math.min(100, momAngerLevel + 5);
     setMomAngerLevel(newAngerLevel);
-  }, [momAngerLevel, setMomAngerLevel, adSequenceComplete]);
-
-  // Start the ad sequence
-  const startAdSequence = useCallback(() => {
-    if (adSequenceRunning || !isTimerRunning) return;
-    
-    setAdSequenceRunning(true);
-    setAdSequenceComplete(false);
-    clearAllTimers();
-    
-    console.log("Starting ad sequence");
-    
-    // Show first ad immediately
-    showAdWithIndex(0);
-    
-    // Set up timer for auto-progression to mom story if user doesn't interact
-    timerRef.current = setTimeout(() => {
-      console.log("20 seconds elapsed, showing mom story");
-      setShowAd(false);
-      setAdSequenceComplete(true);
-      setAdSequenceRunning(false);
-      
-      setTimeout(() => {
-        showRandomMomStory();
-      }, 200);
-    }, 20000);
-  }, [isTimerRunning, showAdWithIndex, showRandomMomStory, adSequenceRunning]);
+  }, [momAngerLevel, setMomAngerLevel]);
 
   // Handle breathing animation
   useEffect(() => {
@@ -150,85 +129,32 @@ const FocusModePage: React.FC = () => {
     };
   }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel]);
 
-  // IMPROVED: Set up recurring distractions while focusing
+  // Set up the initial unskippable ad after 5 seconds
   useEffect(() => {
     if (!isTimerRunning) return;
     
-    // Schedule first ad sequence to appear after just 10 seconds
-    const initialAdTimer = setTimeout(() => {
-      if (isTimerRunning && !adSequenceRunning) {
-        startAdSequence();
-      }
-    }, 10000); // Start first ad sequence after 10 seconds
+    // Clear previous timers first
+    clearAllTimers();
     
-    // Set up recurring ads every 30-45 seconds
-    const recurringAdTimer = setInterval(() => {
-      if (isTimerRunning && !adSequenceRunning && !showMomStory) {
-        // 70% chance to show ad, 30% chance to show mom story directly
-        if (Math.random() < 0.7) {
-          startAdSequence();
-        } else {
-          showRandomMomStory();
-        }
+    // Show first unskippable ad after 5 seconds
+    initialAdTimerRef.current = setTimeout(() => {
+      if (isTimerRunning) {
+        showAdWithConfig(true); // true for unskippable
       }
-    }, Math.floor(Math.random() * 15000) + 30000); // Random interval between 30-45 seconds
+    }, 5000);
     
-    // Make mom angrier over time - she expects progress!
-    const momAngerTimer = setInterval(() => {
-      const newAngerLevel = Math.min(100, momAngerLevel + 3);
-      setMomAngerLevel(newAngerLevel);
-      
-      // Random sabotage
-      if (Math.random() < 0.4) {
-        triggerRandomSabotage();
+    // Set up recurring ads every 30-60 seconds
+    recurringAdTimerRef.current = setInterval(() => {
+      if (isTimerRunning && !showAd && !showMomStory) {
+        // 50% chance to show an unskippable ad
+        showAdWithConfig(Math.random() < 0.5);
       }
-    }, 15000); // Every 15 seconds
-    
-    adTimersRef.current.push(initialAdTimer, recurringAdTimer, momAngerTimer);
+    }, Math.floor(Math.random() * 30000) + 30000); // Random interval between 30-60 seconds
     
     return () => {
-      clearTimeout(initialAdTimer);
-      clearInterval(recurringAdTimer);
-      clearInterval(momAngerTimer);
+      clearAllTimers();
     };
-  }, [isTimerRunning, adSequenceRunning, showMomStory, startAdSequence, 
-      showRandomMomStory, momAngerLevel, setMomAngerLevel, triggerRandomSabotage]);
-
-  // Notification system
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    
-    // Schedule annoying notifications
-    const notificationTimers = [
-      setTimeout(() => {
-        toast({
-          title: "Mom Says:",
-          description: "Are you ACTUALLY focusing? I don't think so.",
-          duration: 5000,
-        });
-      }, 20000),
-      
-      setTimeout(() => {
-        toast({
-          title: "Mom Says:",
-          description: "Your posture is terrible. Sit up straight!",
-          duration: 5000,
-        });
-      }, 60000),
-      
-      setTimeout(() => {
-        toast({
-          title: "Mom Says:",
-          description: "You call this focusing? I've seen better focus from a goldfish.",
-          duration: 5000,
-        });
-      }, 120000)
-    ];
-    
-    return () => {
-      notificationTimers.forEach(timer => clearTimeout(timer));
-    };
-  }, [isTimerRunning]);
+  }, [isTimerRunning, showAd, showMomStory, showAdWithConfig]);
 
   const toggleTimer = () => {
     const newTimerState = !isTimerRunning;
@@ -237,25 +163,22 @@ const FocusModePage: React.FC = () => {
     if (newTimerState) {
       // First-time notification
       toast({
-        title: "Focus Mode Activated",
-        description: "Mom will be watching your progress...",
+        title: "EVIL Focus Mode Activated",
+        description: "Mom will be distracting you very soon...",
         duration: 3000,
       });
       
-      // Reset ad sequence state
-      setAdSequenceComplete(false);
-      setCurrentAdIndex(0);
+      // Reset ad state
+      setShowAd(false);
+      setAdIsUnskippable(false);
       
-      // IMPROVED: Show first ad almost immediately
-      setTimeout(() => {
-        if (isTimerRunning) {
-          startAdSequence();
-        }
-      }, 5000); // Show first ad after just 5 seconds
+      // Show first unskippable ad after 5 seconds
+      initialAdTimerRef.current = setTimeout(() => {
+        showAdWithConfig(true); // true for unskippable
+      }, 5000);
     } else {
       // Pause all timers when stopping
       clearAllTimers();
-      setAdSequenceRunning(false);
       
       // Mom gets angry when you stop focusing
       const newAngerLevel = Math.min(100, momAngerLevel + 10);
@@ -276,11 +199,9 @@ const FocusModePage: React.FC = () => {
     setDistractionCount(0);
     setBreatheCount(0);
     setBreathePhase('inhale');
-    setCurrentAdIndex(0);
-    setAdSequenceRunning(false);
-    setAdSequenceComplete(false);
     setShowAd(false);
     setShowMomStory(false);
+    setAdIsUnskippable(false);
     
     // Clear any existing timers
     clearAllTimers();
@@ -291,7 +212,7 @@ const FocusModePage: React.FC = () => {
       duration: 3000,
     });
     
-    // IMPROVED: Mom gets very angry when you reset
+    // Mom gets very angry when you reset
     const newAngerLevel = Math.min(100, momAngerLevel + 20);
     setMomAngerLevel(newAngerLevel);
     
@@ -314,7 +235,7 @@ const FocusModePage: React.FC = () => {
       duration: 3000,
     });
     
-    // IMPROVED: 30% chance she'll immediately show another story
+    // 30% chance she'll immediately show another story
     if (Math.random() < 0.3) {
       setTimeout(() => {
         showRandomMomStory();
@@ -323,61 +244,16 @@ const FocusModePage: React.FC = () => {
   };
 
   const closeAd = () => {
-    setShowAd(false);
-    
-    // Clear auto-progression timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    // Progress to next ad based on current index
-    if (currentAdIndex === 0) {
-      setTimeout(() => showAdWithIndex(1), 200); // Show second ad
-    } else if (currentAdIndex === 1) {
-      setTimeout(() => showAdWithIndex(2), 200); // Show third ad
-    } else if (currentAdIndex === 2) {
-      // Last ad closed, complete sequence
-      setAdSequenceComplete(true);
-      setAdSequenceRunning(false);
-      
-      // Show mom story after closing third ad
-      setTimeout(() => {
-        showRandomMomStory();
-      }, 200);
+    // Only non-unskippable ads can be closed
+    if (!adIsUnskippable) {
+      setShowAd(false);
+      showRandomMomStory();
     }
   };
 
   const handleAdClick = () => {
     setShowAd(false);
-    
-    // Clear auto-progression timer
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    // If this is the final (third) ad, show mom story
-    if (currentAdIndex === 2) {
-      setAdSequenceComplete(true);
-      setAdSequenceRunning(false);
-      
-      // Show mom story after clicking third ad
-      setTimeout(() => {
-        showRandomMomStory();
-      }, 200);
-    } else {
-      // Otherwise proceed to next ad
-      if (currentAdIndex === 0) {
-        setTimeout(() => showAdWithIndex(1), 200); // Show second ad
-      } else if (currentAdIndex === 1) {
-        setTimeout(() => showAdWithIndex(2), 200); // Show third ad
-      }
-    }
-    
-    // Mom gets a little less angry when you engage with her monetization
-    const newAngerLevel = Math.max(0, momAngerLevel - 5);
-    setMomAngerLevel(newAngerLevel);
+    showRandomMomStory();
   };
 
   // Format time as mm:ss
@@ -428,11 +304,11 @@ const FocusModePage: React.FC = () => {
           Back to Tasks
         </Link>
 
-        <div className="neubrutalism-box bg-momento-blue p-6 mb-10">
+        <div className="neubrutalism-box bg-momento-red p-6 mb-10">
           <h1 className="text-4xl md:text-5xl font-black text-center uppercase tracking-wide mb-4">
-            FOCUS MODE
+            EVIL FOCUS MODE
           </h1>
-          <p className="text-center font-bold text-lg">Because Mom knows you need it</p>
+          <p className="text-center font-bold text-lg">Because Mom wants to sabotage you</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
@@ -480,21 +356,6 @@ const FocusModePage: React.FC = () => {
                     ></div>
                   </div>
                 </div>
-                
-                {isTimerRunning && adSequenceRunning && (
-                  <div>
-                    <div className="flex justify-between text-sm font-bold mb-1">
-                      <span>Ad Sequence</span>
-                      <span>{currentAdIndex + 1}/3</span>
-                    </div>
-                    <div className="h-4 bg-gray-200 border-2 border-black">
-                      <div 
-                        className="h-full bg-momento-yellow transition-all"
-                        style={{ width: `${((currentAdIndex + 1) / 3) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
             
@@ -514,7 +375,7 @@ const FocusModePage: React.FC = () => {
                   ) : (
                     <>
                       <Zap className="mr-2 w-5 h-5" /> 
-                      Start Focus
+                      Start Evil Focus
                     </>
                   )}
                 </button>
@@ -618,7 +479,15 @@ const FocusModePage: React.FC = () => {
       )}
       
       {/* Advertisement popup */}
-      {showAd && <AdComponent onClose={closeAd} onAdClick={handleAdClick} adIndex={currentAdIndex} />}
+      {showAd && (
+        <AdComponent 
+          onClose={closeAd} 
+          onAdClick={handleAdClick} 
+          adIndex={currentAdIndex} 
+          isUnskippable={adIsUnskippable} 
+          showCloseTimer={adIsUnskippable ? 0 : 5}
+        />
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -6,11 +7,19 @@ interface AdComponentProps {
   onClose: () => void;
   onAdClick: () => void;
   adIndex?: number;
+  isUnskippable?: boolean;
+  showCloseTimer?: number;
 }
 
-const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: forcedAdIndex }) => {
+const AdComponent: React.FC<AdComponentProps> = ({ 
+  onClose, 
+  onAdClick, 
+  adIndex: forcedAdIndex,
+  isUnskippable = false,
+  showCloseTimer = 0
+}) => {
   const [adIndex] = useState(() => forcedAdIndex !== undefined ? forcedAdIndex : Math.floor(Math.random() * 5));
-  const [closingIn, setClosingIn] = useState<number | null>(null);
+  const [closingIn, setClosingIn] = useState<number | null>(showCloseTimer > 0 ? showCloseTimer : null);
   
   const adTemplates = [
     {
@@ -43,9 +52,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
   const currentAd = adTemplates[adIndex];
 
   useEffect(() => {
-    if (Math.random() > 0.7) {
-      setClosingIn(5);
-      
+    if (closingIn !== null) {
       const interval = setInterval(() => {
         setClosingIn(prev => {
           if (prev === null) return null;
@@ -59,9 +66,18 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
       
       return () => clearInterval(interval);
     }
-  }, []);
+  }, [closingIn]);
 
   const handleCloseAd = () => {
+    if (isUnskippable) {
+      toast({
+        title: "Mom Says:",
+        description: "Nice try! This ad is UNSKIPPABLE. You have to engage with it!",
+        duration: 3000,
+      });
+      return;
+    }
+    
     toast({
       title: "Mom Says:",
       description: "You didn't even click the ad! You're not studying anyway, now listen to my story!",
@@ -74,7 +90,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
   const handleAdClick = () => {
     toast({
       title: "Mom Says:",
-      description: "I knew you couldn't resist! Back to work now.",
+      description: "I knew you couldn't resist! Let me tell you a story now.",
       duration: 3000,
     });
     
@@ -82,7 +98,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
   };
 
   const moveCloseButton = (e: React.MouseEvent) => {
-    if (Math.random() < 0.25) {
+    if (Math.random() < 0.8) { // Increased chance of button moving
       const button = e.currentTarget as HTMLButtonElement;
       const container = button.parentElement?.parentElement;
       
@@ -104,22 +120,24 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 animate-popup">
-      <div className={`neubrutalism-box ${currentAd.color} p-6 max-w-md w-full relative`}>
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-80 animate-popup">
+      <div className={`neubrutalism-box ${currentAd.color} p-6 max-w-md w-full relative animate-pulse`}>
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-xl font-black uppercase">{currentAd.title}</h3>
-          <button 
-            onClick={handleCloseAd} 
-            onMouseEnter={moveCloseButton}
-            className="bg-white border-4 border-black p-2 z-10"
-          >
-            <X size={20} />
-          </button>
+          {!isUnskippable && (
+            <button 
+              onClick={handleCloseAd} 
+              onMouseEnter={moveCloseButton}
+              className="bg-white border-4 border-black p-2 z-10"
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
         
         {closingIn !== null && (
           <div className="absolute top-2 left-2 text-xs font-bold bg-white px-2 py-1 border-2 border-black">
-            Close in {closingIn}s
+            {isUnskippable ? "Unskippable" : `Close in ${closingIn}s`}
           </div>
         )}
         
@@ -133,7 +151,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ onClose, onAdClick, adIndex: 
         
         <button 
           onClick={handleAdClick} 
-          className="neubrutalism-button w-full bg-white"
+          className="neubrutalism-button w-full bg-white animate-bounce"
         >
           Click Here Now!
         </button>
