@@ -1,12 +1,49 @@
 
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
-import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack } from 'lucide-react';
+import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack, Coffee } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { playSoundWithCooldown } from '@/utils/soundEffects';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import MomAvatar from '@/components/MomAvatar';
+
+// Array of useless tasks to recommend
+const USELESS_TASKS = [
+  "Alphabetize your spice rack",
+  "Count how many red cars pass by your window",
+  "Organize your sock drawer by color",
+  "Research the history of paperclips",
+  "Make a list of all the places you've never been to",
+  "Rename all your digital files with emoji prefixes",
+  "Create a playlist for plants",
+  "Organize your books by color instead of author",
+  "Write a poem about your vacuum cleaner",
+  "Learn to say 'procrastination' in 5 different languages",
+  "Design a new logo for your personal brand",
+  "Make paper airplanes from old receipts",
+  "Practice your signature with your non-dominant hand",
+  "Create a tier list of breakfast cereals",
+  "Reorganize your apps by icon color"
+];
+
+// Array of mom's nagging responses
+const MOM_NAGS = [
+  "Really? THAT'S what you're choosing to do with your time?",
+  "Your cousin would have finished three REAL tasks by now.",
+  "I didn't raise you to waste time like this!",
+  "This is why you never accomplish anything meaningful.",
+  "And you wonder why you're always behind on everything?",
+  "When I was your age, I would never waste time like this.",
+  "Do you think successful people alphabetize their spices?",
+  "I'm not mad, I'm just disappointed in your choices.",
+  "This is exactly why your room was always a mess growing up.",
+  "You get this from your father's side of the family.",
+  "I should have known this is how you'd spend your day."
+];
 
 const MomMoodMeter: React.FC = () => {
-  const { sabotageEvents, momAngerLevel, setMomAngerLevel } = useMomento();
+  const { sabotageEvents, momAngerLevel, setMomAngerLevel, triggerRandomSabotage } = useMomento();
   const [momMood, setMomMood] = useState<number>(100); // Start at 100% (full)
   const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
   const [moodDirection, setMoodDirection] = useState<'improving' | 'worsening' | 'stable'>('stable');
@@ -14,6 +51,54 @@ const MomMoodMeter: React.FC = () => {
   const [pulseEffect, setPulseEffect] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [lastMoodChangeSound, setLastMoodChangeSound] = useState(Date.now());
+  
+  // New states for the useless task feature
+  const [uselessTaskDialogOpen, setUselessTaskDialogOpen] = useState(false);
+  const [currentUselessTask, setCurrentUselessTask] = useState("");
+  const [momNaggingResponse, setMomNaggingResponse] = useState("");
+  const [showMomAvatar, setShowMomAvatar] = useState(false);
+  
+  // Function to get a random useless task
+  const getRandomUselessTask = () => {
+    const randomIndex = Math.floor(Math.random() * USELESS_TASKS.length);
+    return USELESS_TASKS[randomIndex];
+  };
+  
+  // Function to get a random mom nagging response
+  const getRandomMomNag = () => {
+    const randomIndex = Math.floor(Math.random() * MOM_NAGS.length);
+    return MOM_NAGS[randomIndex];
+  };
+  
+  // Function to handle useless task button click
+  const handleUselessTaskClick = () => {
+    setCurrentUselessTask(getRandomUselessTask());
+    setUselessTaskDialogOpen(true);
+  };
+  
+  // Function to handle "I did this task" button click
+  const handleTaskCompletedClick = () => {
+    // Increase mom's anger
+    const newAngerLevel = Math.min(100, momAngerLevel + 15);
+    setMomAngerLevel(newAngerLevel);
+    
+    // Set mom's nagging response
+    setMomNaggingResponse(getRandomMomNag());
+    
+    // Show mom avatar
+    setShowMomAvatar(true);
+    
+    // Play angry sound
+    playSoundWithCooldown('angry');
+    
+    // Trigger a random sabotage event
+    triggerRandomSabotage();
+    
+    // Close the dialog after a delay
+    setTimeout(() => {
+      setUselessTaskDialogOpen(false);
+    }, 4000);
+  };
   
   // Track user activity - any interaction increases mood
   useEffect(() => {
@@ -180,6 +265,49 @@ const MomMoodMeter: React.FC = () => {
           </p>
         </div>
       )}
+      
+      {/* Useless Task Button */}
+      <div className="mt-3 flex justify-center">
+        <Button 
+          variant="outline" 
+          onClick={handleUselessTaskClick}
+          className="border-2 border-black bg-momento-yellow hover:bg-momento-yellow/80 text-black font-bold"
+        >
+          <Coffee className="mr-1" />
+          Recommend a Useless Task
+        </Button>
+      </div>
+      
+      {/* Useless Task Dialog */}
+      <Dialog open={uselessTaskDialogOpen} onOpenChange={setUselessTaskDialogOpen}>
+        <DialogContent className="border-2 border-black max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-lg font-bold">Try This Instead!</DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-lg font-bold text-center mb-4">{currentUselessTask}</p>
+            
+            {showMomAvatar ? (
+              <div className="flex flex-col items-center">
+                <MomAvatar speaking={true} size="md" />
+                <div className="mt-3 p-3 bg-momento-red/20 rounded-lg border-2 border-black">
+                  <p className="font-bold text-black">{momNaggingResponse}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center mt-2">
+                <Button 
+                  onClick={handleTaskCompletedClick}
+                  className="border-2 border-black bg-momento-pink hover:bg-momento-pink/80 text-black font-bold"
+                >
+                  I Did This Task
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
