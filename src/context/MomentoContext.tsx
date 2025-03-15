@@ -49,6 +49,7 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
   const [momAngerLevel, setMomAngerLevel] = useState<number>(0);
+  const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
 
   const triggerCriticism = () => {
     const randomIndex = Math.floor(Math.random() * criticisms.length);
@@ -94,6 +95,15 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setMomAngerLevel(prev => Math.min(100, prev + 5));
   };
 
+  // Exit confirm functions
+  const attemptToExit = () => {
+    setShowExitConfirm(true);
+  };
+
+  const closeExitConfirm = () => {
+    setShowExitConfirm(false);
+  };
+
   useEffect(() => {
     if (stage === 'welcome') {
       // Reset mom's anger when returning to welcome screen
@@ -133,6 +143,10 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     triggerCriticism,
     sabotageEvents,
     triggerRandomSabotage,
+    showExitConfirm,
+    setShowExitConfirm,
+    attemptToExit,
+    closeExitConfirm,
     momAngerLevel,
     setMomAngerLevel,
     calmMomDown,
