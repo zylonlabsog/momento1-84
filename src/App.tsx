@@ -15,11 +15,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/focus" element={<FocusModePage />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {/* MomCrashPage outside MomentoProvider context */}
-      <Routes>
         <Route path="/mom-crashed" element={<MomCrashPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
     </MomentoProvider>
