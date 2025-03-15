@@ -1,11 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
-import { useMomento } from '@/context/MomentoContext';
+import { useNavigate } from 'react-router-dom';
 import { Skull, HeartCrack, RefreshCw, AlertTriangle, Bug, Bomb } from 'lucide-react';
 import { audioManager } from '@/utils/audioManager';
 
 const MomCrashPage: React.FC = () => {
-  const { resetApp } = useMomento();
+  const navigate = useNavigate();
   const [shaking, setShaking] = useState(true);
   const [glitching, setGlitching] = useState(true);
   const [showRetry, setShowRetry] = useState(false);
@@ -40,9 +40,8 @@ const MomCrashPage: React.FC = () => {
   
   const handleRetry = () => {
     audioManager.playSound('click');
-    resetApp();
     // Navigate back to the home page
-    window.location.href = '/';
+    navigate('/');
   };
   
   return (
