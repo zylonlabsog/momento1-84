@@ -3,7 +3,7 @@
 class AudioManager {
   private static instance: AudioManager;
   private bgMusic: HTMLAudioElement | null = null;
-  private isMuted: boolean = false;
+  private muted: boolean = false;
   private soundEffectsEnabled: boolean = true;
   private volume: number = 0.5;
   private musicPlaying: boolean = false;
@@ -52,7 +52,7 @@ class AudioManager {
   }
   
   public playBackgroundMusic(): void {
-    if (this.bgMusic && !this.isMuted && !this.musicPlaying) {
+    if (this.bgMusic && !this.muted && !this.musicPlaying) {
       this.bgMusic.play().catch(err => {
         console.log('Music play failed (user interaction needed):', err);
       });
@@ -78,7 +78,7 @@ class AudioManager {
   
   public playSound(type: keyof typeof this.sounds): void {
     try {
-      if (this.isMuted || !this.soundEffectsEnabled) return;
+      if (this.muted || !this.soundEffectsEnabled) return;
       
       const sound = this.sounds[type];
       if (sound) {
@@ -104,7 +104,7 @@ class AudioManager {
   }
   
   public mute(): void {
-    this.isMuted = true;
+    this.muted = true;
     if (this.bgMusic) {
       this.bgMusic.pause();
       this.musicPlaying = false;
@@ -112,15 +112,19 @@ class AudioManager {
   }
   
   public unmute(): void {
-    this.isMuted = false;
+    this.muted = false;
   }
   
   public toggleMute(): boolean {
-    this.isMuted = !this.isMuted;
-    if (this.isMuted) {
+    this.muted = !this.muted;
+    if (this.muted) {
       this.pauseBackgroundMusic();
     }
-    return this.isMuted;
+    return this.muted;
+  }
+  
+  public isMuted(): boolean {
+    return this.muted;
   }
   
   public enableSoundEffects(): void {
@@ -138,10 +142,6 @@ class AudioManager {
   
   public areSoundEffectsEnabled(): boolean {
     return this.soundEffectsEnabled;
-  }
-  
-  public isMuted(): boolean {
-    return this.isMuted;
   }
   
   public setVolume(volume: number): void {
