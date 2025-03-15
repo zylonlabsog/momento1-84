@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { playSoundWithCooldown } from '@/utils/soundEffects';
 
 const MomMoodMeter: React.FC = () => {
   const { sabotageEvents, momAngerLevel, setMomAngerLevel } = useMomento();
@@ -12,6 +13,7 @@ const MomMoodMeter: React.FC = () => {
   const [prevMood, setPrevMood] = useState<number>(100); // Start at 100%
   const [pulseEffect, setPulseEffect] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
+  const [lastMoodChangeSound, setLastMoodChangeSound] = useState(Date.now());
   
   // Track user activity - any interaction increases mood
   useEffect(() => {
@@ -78,11 +80,27 @@ const MomMoodMeter: React.FC = () => {
         // Pulse effect when mood improves significantly
         setPulseEffect(true);
         setTimeout(() => setPulseEffect(false), 1000);
+        
+        // Play happy sound when mood improves significantly
+        if (currentTime - lastMoodChangeSound > 5000 && newMood > momMood + 10) {
+          playSoundWithCooldown('happy');
+          setLastMoodChangeSound(currentTime);
+        }
       } else if (newMood < momMood - 2) {
         setMoodDirection('worsening');
         // Pulse effect when mood worsens significantly
         setPulseEffect(true);
         setTimeout(() => setPulseEffect(false), 1000);
+        
+        // Play angry or sigh sound when mood worsens significantly
+        if (currentTime - lastMoodChangeSound > 5000 && newMood < momMood - 10) {
+          if (newMood < 30) {
+            playSoundWithCooldown('angry');
+          } else {
+            playSoundWithCooldown('sigh');
+          }
+          setLastMoodChangeSound(currentTime);
+        }
       } else {
         setMoodDirection('stable');
       }

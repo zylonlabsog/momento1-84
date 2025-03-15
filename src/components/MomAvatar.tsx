@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import confetti from 'canvas-confetti';
+import { playSoundWithCooldown } from '@/utils/soundEffects';
 
 interface MomAvatarProps {
   size?: 'sm' | 'md' | 'lg';
@@ -16,11 +17,13 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
   message,
   interactive = false
 }) => {
-  const { stage, triggerRandomSabotage } = useMomento();
+  const { stage, triggerRandomSabotage, momAngerLevel } = useMomento();
   const [animation, setAnimation] = useState<string>('animate-popup');
   const [blinkEyes, setBlinkEyes] = useState<boolean>(false);
   const [emote, setEmote] = useState<string>('');
   const [pokeCount, setPokeCount] = useState<number>(0);
+  const [faceColor, setFaceColor] = useState<string>('bg-momento-pink');
+  const [lastEmoteChange, setLastEmoteChange] = useState<number>(Date.now());
   
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -28,16 +31,38 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
     lg: 'w-32 h-32'
   };
   
+  // React to mom's anger level with animations and sounds
   useEffect(() => {
-    // Change animation based on stage
+    // Change animation based on anger level and stage
     if (stage === 'welcome') {
       setAnimation('animate-popup');
     } else if (stage === 'guiltTrip') {
       setAnimation('animate-shake-infinite');
-    } else if (speaking) {
+      playSoundWithCooldown('angry');
+    } else if (momAngerLevel > 80) {
+      setAnimation('animate-shake-infinite');
+      setFaceColor('bg-momento-red bg-opacity-30');
+      if (Date.now() - lastEmoteChange > 5000) {
+        playSoundWithCooldown('angry');
+        setLastEmoteChange(Date.now());
+      }
+    } else if (momAngerLevel > 60) {
       setAnimation('animate-jitter-slow');
+      setFaceColor('bg-momento-pink bg-opacity-90');
+      if (Date.now() - lastEmoteChange > 10000) {
+        playSoundWithCooldown('sigh');
+        setLastEmoteChange(Date.now());
+      }
+    } else if (momAngerLevel < 20 && speaking) {
+      setAnimation('animate-float');
+      setFaceColor('bg-momento-pink');
+      if (Date.now() - lastEmoteChange > 15000) {
+        playSoundWithCooldown('happy');
+        setLastEmoteChange(Date.now());
+      }
     } else {
       setAnimation('animate-float');
+      setFaceColor('bg-momento-pink');
     }
     
     // Random eye blinking
@@ -46,17 +71,33 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       setTimeout(() => setBlinkEyes(false), 200);
     }, Math.random() * 3000 + 2000);
     
-    // Random emotional state
+    // Random emotional state based on anger level
     const emotionInterval = setInterval(() => {
-      const emotions = ['', 'annoyed', 'judgmental', 'disappointed'];
-      setEmote(emotions[Math.floor(Math.random() * emotions.length)]);
+      let emotions;
+      
+      if (momAngerLevel > 70) {
+        emotions = ['annoyed', 'judgmental', 'disappointed', 'furious'];
+        playSoundWithCooldown('angry');
+      } else if (momAngerLevel > 40) {
+        emotions = ['annoyed', 'judgmental', 'disappointed'];
+        if (Math.random() > 0.7) playSoundWithCooldown('sigh');
+      } else {
+        emotions = ['', 'annoyed', '', 'judgmental', '', 'proud'];
+        if (Math.random() > 0.9) playSoundWithCooldown('happy');
+      }
+      
+      const newEmote = emotions[Math.floor(Math.random() * emotions.length)];
+      if (newEmote !== emote) {
+        setEmote(newEmote);
+        setLastEmoteChange(Date.now());
+      }
     }, 5000);
     
     return () => {
       clearInterval(blinkInterval);
       clearInterval(emotionInterval);
     };
-  }, [stage, speaking]);
+  }, [stage, speaking, momAngerLevel, emote]);
 
   const handlePoke = () => {
     if (!interactive) return;
@@ -73,8 +114,11 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
         colors: ['#FF4D4D', '#FFD600', '#FF61D8']
       });
       
+      playSoundWithCooldown('angry');
       triggerRandomSabotage();
       setPokeCount(0);
+    } else {
+      playSoundWithCooldown('sigh');
     }
   };
 
@@ -87,12 +131,20 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
       )}
       
       <div 
-        className={`${sizeClasses[size]} ${animation} rounded-full bg-momento-pink border-4 border-black flex items-center justify-center overflow-hidden relative ${interactive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+        className={`${sizeClasses[size]} ${animation} rounded-full ${faceColor} border-4 border-black flex items-center justify-center overflow-hidden relative ${interactive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
         onClick={handlePoke}
       >
         {/* Aura effect for mom's judgement */}
         {emote === 'judgmental' && (
           <div className="absolute inset-0 bg-momento-red opacity-20 animate-pulse rounded-full" />
+        )}
+        
+        {emote === 'furious' && (
+          <div className="absolute inset-0 bg-momento-red opacity-40 animate-ping rounded-full" />
+        )}
+        
+        {emote === 'proud' && (
+          <div className="absolute inset-0 bg-momento-green opacity-20 animate-pulse rounded-full" />
         )}
         
         <div className="relative w-full h-full flex items-center justify-center">
@@ -103,10 +155,10 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
             <div className={`absolute top-1/4 right-1/4 w-1/4 h-${blinkEyes ? '0.5' : '1/4'} bg-black rounded-full transition-all duration-100`}></div>
             
             {/* Eyebrows - different based on mood */}
-            {emote === 'annoyed' && (
+            {(emote === 'annoyed' || emote === 'furious') && (
               <>
-                <div className="absolute top-[15%] left-[20%] w-1/4 h-1 bg-black rotate-[-20deg]"></div>
-                <div className="absolute top-[15%] right-[20%] w-1/4 h-1 bg-black rotate-[20deg]"></div>
+                <div className={`absolute top-[15%] left-[20%] w-1/4 h-1 bg-black rotate-[-${emote === 'furious' ? '30' : '20'}deg]`}></div>
+                <div className={`absolute top-[15%] right-[20%] w-1/4 h-1 bg-black rotate-[${emote === 'furious' ? '30' : '20'}deg]`}></div>
               </>
             )}
             {emote === 'disappointed' && (
@@ -115,9 +167,15 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
                 <div className="absolute top-[15%] right-[20%] w-1/4 h-1 bg-black rotate-[-10deg]"></div>
               </>
             )}
+            {emote === 'proud' && (
+              <>
+                <div className="absolute top-[18%] left-[20%] w-1/4 h-1 bg-black rotate-[-5deg]"></div>
+                <div className="absolute top-[18%] right-[20%] w-1/4 h-1 bg-black rotate-[5deg]"></div>
+              </>
+            )}
             
-            {/* Mouth - different based on stage */}
-            {stage === 'guiltTrip' ? (
+            {/* Mouth - different based on stage and emotion */}
+            {stage === 'guiltTrip' || emote === 'furious' ? (
               // Angry mouth for guilt trip
               <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform rotate-12 before:content-[''] before:absolute before:w-full before:h-full before:bg-black before:transform before:rotate-[-24deg] before:origin-center"></div>
             ) : speaking ? (
@@ -129,6 +187,9 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
             ) : emote === 'disappointed' ? (
               // Disappointed mouth
               <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform rotate-[-20deg]"></div>
+            ) : emote === 'proud' ? (
+              // Proud smile
+              <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform rotate-6 before:content-[''] before:absolute before:w-full before:h-[5px] before:bg-black before:transform before:rotate-[180deg] before:rounded-t-full before:top-[-5px]"></div>
             ) : (
               // Default smirk
               <div className="absolute bottom-1/4 left-1/4 w-1/2 h-[3px] bg-black transform -rotate-6"></div>
