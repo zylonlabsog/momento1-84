@@ -1,11 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import { AlertTriangle, ThermometerSun, Heart, Frown, Smile, HeartCrack, Coffee } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { playSoundWithCooldown } from '@/utils/soundEffects';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import MomAvatar from '@/components/MomAvatar';
+import { audioManager } from '@/utils/audioManager';
 
 // Array of useless tasks to recommend
 const USELESS_TASKS = [
@@ -42,7 +43,7 @@ const MOM_NAGS = [
 ];
 
 const MomMoodMeter: React.FC = () => {
-  const { sabotageEvents, momAngerLevel, setMomAngerLevel, triggerRandomSabotage } = useMomento();
+  const { sabotageEvents, momAngerLevel, setMomAngerLevel, triggerRandomSabotage, isExploding } = useMomento();
   const [momMood, setMomMood] = useState<number>(100); // Start at 100% (full)
   const [moodIcon, setMoodIcon] = useState<React.ReactNode>(<Heart className="w-5 h-5 text-momento-green animate-pulse" />);
   const [moodDirection, setMoodDirection] = useState<'improving' | 'worsening' | 'stable'>('stable');
@@ -73,6 +74,7 @@ const MomMoodMeter: React.FC = () => {
   const handleUselessTaskClick = () => {
     setCurrentUselessTask(getRandomUselessTask());
     setUselessTaskDialogOpen(true);
+    audioManager.playSound('click');
   };
   
   // Function to handle "I did this task" button click
@@ -88,7 +90,7 @@ const MomMoodMeter: React.FC = () => {
     setShowMomAvatar(true);
     
     // Play angry sound
-    playSoundWithCooldown('angry');
+    audioManager.playSound('angry');
     
     // Trigger a random sabotage event
     triggerRandomSabotage();
@@ -128,6 +130,8 @@ const MomMoodMeter: React.FC = () => {
   // Calculate mom's mood - drop rapidly when idle
   useEffect(() => {
     const moodInterval = setInterval(() => {
+      if (isExploding) return; // Don't update mood when exploding
+      
       const triggeredEvents = sabotageEvents.filter(event => event.triggered).length;
       const percentTriggered = (triggeredEvents / sabotageEvents.length) * 100;
       
@@ -168,7 +172,7 @@ const MomMoodMeter: React.FC = () => {
         
         // Play happy sound when mood improves significantly
         if (currentTime - lastMoodChangeSound > 5000 && newMood > momMood + 10) {
-          playSoundWithCooldown('happy');
+          audioManager.playSound('happy');
           setLastMoodChangeSound(currentTime);
         }
       } else if (newMood < momMood - 2) {
@@ -180,9 +184,9 @@ const MomMoodMeter: React.FC = () => {
         // Play angry or sigh sound when mood worsens significantly
         if (currentTime - lastMoodChangeSound > 5000 && newMood < momMood - 10) {
           if (newMood < 30) {
-            playSoundWithCooldown('angry');
+            audioManager.playSound('angry');
           } else {
-            playSoundWithCooldown('sigh');
+            audioManager.playSound('sigh');
           }
           setLastMoodChangeSound(currentTime);
         }
@@ -208,7 +212,7 @@ const MomMoodMeter: React.FC = () => {
     }, 800); // Reduced from 1000ms to 800ms for more frequent updates
     
     return () => clearInterval(moodInterval);
-  }, [sabotageEvents, momAngerLevel, lastActivityTime, momMood, setMomAngerLevel]);
+  }, [sabotageEvents, momAngerLevel, lastActivityTime, momMood, setMomAngerLevel, isExploding]);
   
   // Get color based on mood
   const getMoodColor = () => {

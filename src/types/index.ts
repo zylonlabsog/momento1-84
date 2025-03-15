@@ -36,4 +36,5 @@ export interface MomentoContextType {
   momAngerLevel: number;
   setMomAngerLevel: (level: number) => void;
   calmMomDown: () => void;
+  isExploding: boolean;
 }

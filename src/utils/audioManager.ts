@@ -4,6 +4,7 @@ class AudioManager {
   private static instance: AudioManager;
   private bgMusic: HTMLAudioElement | null = null;
   private isMuted: boolean = false;
+  private soundEffectsEnabled: boolean = true;
   private volume: number = 0.5;
   private musicPlaying: boolean = false;
   
@@ -38,7 +39,10 @@ class AudioManager {
       error: new Audio('/sounds/error.mp3'),
       success: new Audio('/sounds/success.mp3'),
       typing: new Audio('/sounds/typing.mp3'),
-      sabotage: new Audio('/sounds/sabotage.mp3')
+      sabotage: new Audio('/sounds/sabotage.mp3'),
+      explosion: new Audio('/sounds/explosion.mp3'),
+      crash: new Audio('/sounds/crash.mp3'),
+      momAngry: new Audio('/sounds/momAngry.mp3')
     };
     
     // Set volume for all sounds
@@ -74,7 +78,7 @@ class AudioManager {
   
   public playSound(type: keyof typeof this.sounds): void {
     try {
-      if (this.isMuted) return;
+      if (this.isMuted || !this.soundEffectsEnabled) return;
       
       const sound = this.sounds[type];
       if (sound) {
@@ -119,6 +123,27 @@ class AudioManager {
     return this.isMuted;
   }
   
+  public enableSoundEffects(): void {
+    this.soundEffectsEnabled = true;
+  }
+  
+  public disableSoundEffects(): void {
+    this.soundEffectsEnabled = false;
+  }
+  
+  public toggleSoundEffects(): boolean {
+    this.soundEffectsEnabled = !this.soundEffectsEnabled;
+    return this.soundEffectsEnabled;
+  }
+  
+  public areSoundEffectsEnabled(): boolean {
+    return this.soundEffectsEnabled;
+  }
+  
+  public isMuted(): boolean {
+    return this.isMuted;
+  }
+  
   public setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
     
@@ -144,10 +169,10 @@ class AudioManager {
 export const audioManager = AudioManager.getInstance();
 
 // Re-export original soundEffects functions with the new implementation
-export const playSound = (type: 'angry' | 'sigh' | 'happy' | 'laugh') => {
+export const playSound = (type: 'angry' | 'sigh' | 'happy' | 'laugh' | 'click' | 'error' | 'success' | 'typing' | 'sabotage' | 'explosion' | 'crash' | 'momAngry') => {
   audioManager.playSound(type);
 };
 
-export const playSoundWithCooldown = (type: 'angry' | 'sigh' | 'happy' | 'laugh') => {
+export const playSoundWithCooldown = (type: 'angry' | 'sigh' | 'happy' | 'laugh' | 'click' | 'error' | 'success' | 'typing' | 'sabotage' | 'explosion' | 'crash' | 'momAngry') => {
   audioManager.playSoundWithCooldown(type);
 };

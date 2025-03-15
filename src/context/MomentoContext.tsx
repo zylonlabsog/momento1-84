@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
 import { toast } from '@/components/ui/use-toast';
+import { audioManager } from '@/utils/audioManager';
+import { useNavigate } from 'react-router-dom';
 
 const CRITICISMS: MomCriticism[] = [
   { text: "Ugh, this is so basic. You're better than this.", severity: 'mild' },
@@ -50,6 +52,8 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
   const [momAngerLevel, setMomAngerLevel] = useState<number>(0); // Start with zero anger
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
+  const [isExploding, setIsExploding] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const triggerCriticism = () => {
     const randomIndex = Math.floor(Math.random() * criticisms.length);
@@ -61,6 +65,9 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Increase mom's anger level with each criticism
     setMomAngerLevel(prev => Math.min(100, prev + 10));
+    
+    // Play sound if effects are enabled
+    audioManager.playSound('sigh');
   };
 
   const triggerRandomSabotage = () => {
@@ -89,24 +96,52 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTimeout(() => {
         document.body.classList.remove('animate-shake');
       }, 500);
+      
+      // Play scary sound for jump scares
+      audioManager.playSound('angry');
+    } else {
+      // Play sabotage sound for other events
+      audioManager.playSound('sabotage');
     }
     
     // Increase mom's anger level with each sabotage
     setMomAngerLevel(prev => Math.min(100, prev + 5));
   };
 
+  // Check if mom's mood has reached zero
+  useEffect(() => {
+    if (momAngerLevel >= 100 && !isExploding) {
+      setIsExploding(true);
+      
+      // Play explosion sound
+      audioManager.playSound('explosion');
+      
+      // Dramatic shaking effect
+      document.body.classList.add('animate-extreme-shake');
+      
+      // Navigate to crash page after a delay
+      setTimeout(() => {
+        document.body.classList.remove('animate-extreme-shake');
+        navigate('/mom-crashed');
+      }, 2500);
+    }
+  }, [momAngerLevel, isExploding, navigate]);
+
   // Exit confirm functions
   const attemptToExit = () => {
     setShowExitConfirm(true);
+    audioManager.playSound('error');
   };
 
   const closeExitConfirm = () => {
     setShowExitConfirm(false);
+    audioManager.playSound('click');
   };
 
   useEffect(() => {
     // Reset mom's anger level on component mount
     setMomAngerLevel(0);
+    setIsExploding(false);
     
     if (stage === 'welcome') {
       // Reset mom's anger when returning to welcome screen
@@ -129,6 +164,7 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSelectedCriticism(null);
     setSabotageEvents(SABOTAGE_EVENTS);
     setMomAngerLevel(0);
+    setIsExploding(false);
   };
 
   const calmMomDown = () => {
@@ -153,7 +189,8 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
     momAngerLevel,
     setMomAngerLevel,
     calmMomDown,
-    resetApp
+    resetApp,
+    isExploding
   };
 
   return <MomentoContext.Provider value={value}>{children}</MomentoContext.Provider>;
