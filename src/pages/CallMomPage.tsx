@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Phone } from 'lucide-react';
+import { ArrowLeft, ArrowDown } from 'lucide-react';
 
 const CallMomPage: React.FC = () => {
   useEffect(() => {
@@ -43,25 +43,16 @@ const CallMomPage: React.FC = () => {
             Call Mom
           </h1>
           
-          <p className="text-lg mb-8 text-center">
+          <p className="text-lg mb-4 text-center">
             Ready to get judged in real-time? Talk to Mom directly!
           </p>
           
-          <div className="p-4 bg-momento-pink bg-opacity-10 rounded-lg mb-8">
-            <p className="font-medium text-center text-gray-700">
-              Mom is ready to hear all about your excuses and procrastination habits.
-            </p>
-          </div>
+          <p className="font-medium text-center text-gray-700 mb-8">
+            Mom is ready to hear all about your excuses and procrastination habits.
+          </p>
           
-          <div className="flex justify-center mb-8">
-            <div className="neubrutalism-box bg-momento-purple p-6 transform rotate-1">
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <Phone className="w-10 h-10 text-white animate-pulse" />
-              </div>
-              <p className="text-white font-bold text-center">
-                Click below to start a call with Mom
-              </p>
-            </div>
+          <div className="flex justify-center mb-4">
+            <ArrowDown className="w-12 h-12 text-momento-purple animate-bounce" />
           </div>
           
           <div className="call-mom-container min-h-[400px] border-4 border-black relative overflow-hidden flex justify-center items-center p-4">
