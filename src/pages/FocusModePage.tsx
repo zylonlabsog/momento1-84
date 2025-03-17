@@ -1,52 +1,26 @@
 
-import React, { useState } from 'react';
-import { useMomento } from '@/context/MomentoContext';
-import MomAvatar from '@/components/MomAvatar';
-import { FastForward, Rewind, ArrowLeft, Focus, Clock, Zap, Timer, Brain, Coffee } from 'lucide-react';
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowLeft, Focus, Brain, Coffee } from 'lucide-react';
+import MomAvatar from '@/components/MomAvatar';
 
 const FocusModePage: React.FC = () => {
-  const { momAngerLevel } = useMomento();
-  const [focusSeconds, setFocusSeconds] = useState(0);
-  const [breathePhase, setBreathePhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
-  const [distractionCount, setDistractionCount] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [breatheCount, setBreatheCount] = useState(0);
-  const [showAd, setShowAd] = useState(false);
+  // Fixed values that never change
+  const focusSeconds = 0;
+  const breathePhase = 'inhale';
+  const distractionCount = 0;
+  const isTimerRunning = false;
+  const breatheCount = 0;
+  const focusProgress = 0;
   
-  // Calculate real-time progress
-  const focusProgress = Math.min(100, (focusSeconds / 1500) * 100); // 25 minutes (1500 seconds) is 100%
-
-  const toggleTimer = () => {
-    setIsTimerRunning(!isTimerRunning);
+  // Static format time function
+  const formatTime = () => {
+    return "00:00";
   };
 
-  const handleReset = () => {
-    setFocusSeconds(0);
-    setIsTimerRunning(false);
-    setDistractionCount(0);
-    setBreatheCount(0);
-  };
-
-  // Format time as mm:ss
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
+  // Static mom comment
   const getMomComment = () => {
-    if (!isTimerRunning) {
-      return "Too scared to start? Typical.";
-    } else if (focusSeconds < 60) {
-      return "Finally decided to focus? Let's see how long you last...";
-    } else if (focusSeconds < 300) {
-      return "Five minutes? That's all you can manage?";
-    } else if (focusSeconds < 600) {
-      return "Your cousin could focus for HOURS when they were half your age.";
-    } else {
-      return "Not bad... for you, I guess.";
-    }
+    return "Too scared to start? Typical.";
   };
 
   return (
@@ -93,12 +67,12 @@ const FocusModePage: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-sm font-bold mb-1">
                     <span>Focus Time</span>
-                    <span>{formatTime(focusSeconds)}</span>
+                    <span>00:00</span>
                   </div>
                   <div className="h-4 bg-gray-200 border-2 border-black">
                     <div 
-                      className="h-full bg-momento-green transition-all duration-500"
-                      style={{ width: `${focusProgress}%` }}
+                      className="h-full bg-momento-green"
+                      style={{ width: '0%' }}
                     ></div>
                   </div>
                 </div>
@@ -106,12 +80,12 @@ const FocusModePage: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-sm font-bold mb-1">
                     <span>Distractions</span>
-                    <span>{distractionCount}</span>
+                    <span>0</span>
                   </div>
                   <div className="h-4 bg-gray-200 border-2 border-black">
                     <div 
-                      className="h-full bg-momento-red transition-all"
-                      style={{ width: `${Math.min(100, distractionCount * 10)}%` }}
+                      className="h-full bg-momento-red"
+                      style={{ width: '0%' }}
                     ></div>
                   </div>
                 </div>
@@ -119,12 +93,12 @@ const FocusModePage: React.FC = () => {
                 <div>
                   <div className="flex justify-between text-sm font-bold mb-1">
                     <span>Breathing Cycles</span>
-                    <span>{breatheCount}</span>
+                    <span>0</span>
                   </div>
                   <div className="h-4 bg-gray-200 border-2 border-black">
                     <div 
-                      className="h-full bg-momento-blue transition-all"
-                      style={{ width: `${Math.min(100, breatheCount * 5)}%` }}
+                      className="h-full bg-momento-blue"
+                      style={{ width: '0%' }}
                     ></div>
                   </div>
                 </div>
@@ -136,27 +110,15 @@ const FocusModePage: React.FC = () => {
               
               <div className="space-y-4">
                 <button 
-                  onClick={toggleTimer}
                   className="neubrutalism-button w-full bg-white flex items-center justify-center"
                 >
-                  {isTimerRunning ? (
-                    <>
-                      <Timer className="mr-2 w-5 h-5" /> 
-                      Pause Focus
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="mr-2 w-5 h-5" /> 
-                      Start Focus
-                    </>
-                  )}
+                  <Focus className="mr-2 w-5 h-5" /> 
+                  Start Focus
                 </button>
                 
                 <button 
-                  onClick={handleReset}
                   className="neubrutalism-button w-full bg-momento-pink text-black flex items-center justify-center"
                 >
-                  <Clock className="mr-2 w-5 h-5" /> 
                   Reset Timer
                 </button>
               </div>
@@ -168,43 +130,38 @@ const FocusModePage: React.FC = () => {
             <div className="neubrutalism-box bg-white p-6 h-full flex flex-col">
               <h2 className="font-black text-xl uppercase mb-6 text-center">Focus Zone</h2>
               
-              {/* Breathing circle animation */}
+              {/* Breathing circle animation - now static */}
               <div className="flex justify-center mb-10">
                 <div 
-                  className="w-56 h-56 rounded-full flex items-center justify-center transition-all duration-1000 ease-in-out border-4 border-black"
+                  className="w-56 h-56 rounded-full flex items-center justify-center border-4 border-black"
                   style={{
-                    backgroundColor: breathePhase === 'inhale' 
-                      ? '#00C6FF'
-                      : breathePhase === 'hold'
-                      ? '#00FF9E'
-                      : '#FFD600',
-                    transform: 'scale(1)',
+                    backgroundColor: '#00C6FF',
                     boxShadow: '5px 5px 0px #000'
                   }}
                 >
                   <span className="text-black font-black text-2xl uppercase">
-                    {breathePhase === 'inhale' ? 'Inhale' : breathePhase === 'hold' ? 'Hold' : 'Exhale'}
+                    Inhale
                   </span>
                 </div>
               </div>
               
-              {/* Focus time display */}
+              {/* Focus time display - static */}
               <div className="text-center mb-8">
                 <span className="font-black text-6xl neubrutalism-box bg-momento-green py-2 px-6 inline-block">
-                  {formatTime(focusSeconds)}
+                  00:00
                 </span>
               </div>
               
-              {/* Mom's focus message */}
+              {/* Mom's focus message - static */}
               <div className="mt-auto">
                 <MomAvatar 
-                  speaking={true} 
-                  message={getMomComment()}
-                  interactive={true}
+                  speaking={false} 
+                  message={"Too scared to start? Typical."}
+                  interactive={false}
                 />
               </div>
               
-              {/* Focus tips */}
+              {/* Focus tips - static */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 p-3 border-4 border-black bg-momento-yellow">
                   <Brain className="w-8 h-8 text-black shrink-0" />
