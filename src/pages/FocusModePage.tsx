@@ -1,177 +1,24 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from '@/components/MomAvatar';
-import { toast } from '@/components/ui/use-toast';
-import { X, Focus, Clock, Zap, Timer, Brain, Coffee, ArrowLeft } from 'lucide-react';
+import { FastForward, Rewind, ArrowLeft, Focus, Clock, Zap, Timer, Brain, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import AdComponent from '@/components/AdComponent';
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from '@/components/ui/dialog';
 
 const FocusModePage: React.FC = () => {
-  const { triggerRandomSabotage, momAngerLevel, setMomAngerLevel } = useMomento();
+  const { momAngerLevel } = useMomento();
   const [focusSeconds, setFocusSeconds] = useState(0);
   const [breathePhase, setBreathePhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [distractionCount, setDistractionCount] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [breatheCount, setBreatheCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
-  const [currentAdIndex, setCurrentAdIndex] = useState(0);
-  const [adIsUnskippable, setAdIsUnskippable] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const initialAdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const recurringAdTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Clear all timers function
-  const clearAllTimers = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    
-    if (initialAdTimerRef.current) {
-      clearTimeout(initialAdTimerRef.current);
-      initialAdTimerRef.current = null;
-    }
-    
-    if (recurringAdTimerRef.current) {
-      clearInterval(recurringAdTimerRef.current);
-      recurringAdTimerRef.current = null;
-    }
-  };
-
   // Calculate real-time progress
   const focusProgress = Math.min(100, (focusSeconds / 1500) * 100); // 25 minutes (1500 seconds) is 100%
 
-  // Handle ad completion
-  const handleAdCompletion = useCallback(() => {
-    setShowAd(false);
-    setDistractionCount(prevCount => prevCount + 1);
-    
-    // Use direct value rather than callback function to avoid TypeScript errors
-    const newAngerLevel = Math.min(100, momAngerLevel + 15);
-    setMomAngerLevel(newAngerLevel);
-    
-    // Pause the timer when distraction occurs
-    setIsTimerRunning(false);
-  }, [momAngerLevel, setMomAngerLevel]);
-
-  // Show the ad
-  const showAdWithConfig = useCallback((unskippable: boolean) => {
-    setCurrentAdIndex(Math.floor(Math.random() * 5));
-    setShowAd(true);
-    setAdIsUnskippable(unskippable);
-    setDistractionCount(prevCount => prevCount + 1);
-    
-    // Increase mom's anger level with each ad (she's monetizing your focus time)
-    const newAngerLevel = Math.min(100, momAngerLevel + 5);
-    setMomAngerLevel(newAngerLevel);
-  }, [momAngerLevel, setMomAngerLevel]);
-
-  // Handle breathing animation
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    
-    // Breathing cycle timer
-    const breatheTimer = setInterval(() => {
-      setBreathePhase(prev => {
-        if (prev === 'inhale') return 'hold';
-        if (prev === 'hold') return 'exhale';
-        setBreatheCount(prevCount => prevCount + 1); // Count completed breath cycles
-        return 'inhale';
-      });
-    }, 2500);
-    
-    return () => clearInterval(breatheTimer);
-  }, [isTimerRunning, breathePhase]);
-
-  // Focus timer
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    
-    // Timer for tracking focus duration
-    const focusTimer = setInterval(() => {
-      setFocusSeconds(prevSeconds => prevSeconds + 1);
-      
-      // Improve mom's mood slightly as you focus (every 30 seconds)
-      if (focusSeconds > 0 && focusSeconds % 30 === 0) {
-        const newAngerLevel = Math.max(0, momAngerLevel - 1);
-        setMomAngerLevel(newAngerLevel);
-      }
-    }, 1000);
-    
-    return () => {
-      clearInterval(focusTimer);
-    };
-  }, [isTimerRunning, focusSeconds, momAngerLevel, setMomAngerLevel]);
-
-  // Set up the initial unskippable ad after 5 seconds
-  useEffect(() => {
-    if (!isTimerRunning) return;
-    
-    // Clear previous timers first
-    clearAllTimers();
-    
-    // Show first unskippable ad after 5 seconds
-    initialAdTimerRef.current = setTimeout(() => {
-      if (isTimerRunning) {
-        showAdWithConfig(true); // true for unskippable
-      }
-    }, 5000);
-    
-    // Set up recurring ads every 30-60 seconds
-    recurringAdTimerRef.current = setInterval(() => {
-      if (isTimerRunning && !showAd) {
-        // 50% chance to show an unskippable ad
-        showAdWithConfig(Math.random() < 0.5);
-      }
-    }, Math.floor(Math.random() * 30000) + 30000); // Random interval between 30-60 seconds
-    
-    return () => {
-      clearAllTimers();
-    };
-  }, [isTimerRunning, showAd, showAdWithConfig]);
-
   const toggleTimer = () => {
-    const newTimerState = !isTimerRunning;
-    setIsTimerRunning(newTimerState);
-    
-    if (newTimerState) {
-      // First-time notification
-      toast({
-        title: "Focus Mode Activated",
-        description: "Mom will be distracting you very soon...",
-        duration: 3000,
-      });
-      
-      // Reset ad state
-      setShowAd(false);
-      setAdIsUnskippable(false);
-      
-      // Show first unskippable ad after 5 seconds
-      initialAdTimerRef.current = setTimeout(() => {
-        showAdWithConfig(true); // true for unskippable
-      }, 5000);
-    } else {
-      // Pause all timers when stopping
-      clearAllTimers();
-      
-      // Mom gets angry when you stop focusing
-      const newAngerLevel = Math.min(100, momAngerLevel + 10);
-      setMomAngerLevel(newAngerLevel);
-      
-      // 50% chance mom will show an ad when you pause
-      if (Math.random() < 0.5) {
-        setTimeout(() => {
-          showAdWithConfig(true);
-        }, 500);
-      }
-    }
+    setIsTimerRunning(!isTimerRunning);
   };
 
   const handleReset = () => {
@@ -179,35 +26,6 @@ const FocusModePage: React.FC = () => {
     setIsTimerRunning(false);
     setDistractionCount(0);
     setBreatheCount(0);
-    setBreathePhase('inhale');
-    setShowAd(false);
-    setAdIsUnskippable(false);
-    
-    // Clear any existing timers
-    clearAllTimers();
-    
-    toast({
-      title: "Timer Reset",
-      description: "Starting over? Mom is not impressed.",
-      duration: 3000,
-    });
-    
-    // Mom gets very angry when you reset
-    const newAngerLevel = Math.min(100, momAngerLevel + 20);
-    setMomAngerLevel(newAngerLevel);
-    
-    // Reset always triggers an ad
-    setTimeout(() => {
-      showAdWithConfig(true);
-    }, 1000);
-  };
-
-  const closeAd = () => {
-    // Only non-unskippable ads can be closed
-    if (!adIsUnskippable) {
-      setShowAd(false);
-      triggerRandomSabotage();
-    }
   };
 
   // Format time as mm:ss
@@ -360,11 +178,7 @@ const FocusModePage: React.FC = () => {
                       : breathePhase === 'hold'
                       ? '#00FF9E'
                       : '#FFD600',
-                    transform: breathePhase === 'inhale' 
-                      ? 'scale(1.2)' 
-                      : breathePhase === 'hold'
-                      ? 'scale(1.2)'
-                      : 'scale(1)',
+                    transform: 'scale(1)',
                     boxShadow: '5px 5px 0px #000'
                   }}
                 >
@@ -406,17 +220,6 @@ const FocusModePage: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* Advertisement popup */}
-      {showAd && (
-        <AdComponent 
-          onClose={closeAd} 
-          onAdClick={handleAdCompletion} 
-          adIndex={currentAdIndex} 
-          isUnskippable={adIsUnskippable} 
-          showCloseTimer={adIsUnskippable ? 0 : 5}
-        />
-      )}
     </div>
   );
 };

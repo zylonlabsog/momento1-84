@@ -1,20 +1,14 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useMomento } from '@/context/MomentoContext';
 import MomAvatar from './MomAvatar';
-import { Sparkles, FastForward, Rewind } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Sparkles } from 'lucide-react';
 
 const TaskInput: React.FC = () => {
   const { 
     taskInput, 
     setTaskInput, 
-    triggerCriticism, 
-    selectedCriticism,
-    setStage,
-    calmMomDown,
-    setMomAngerLevel,
-    momAngerLevel
+    selectedCriticism
   } = useMomento();
   
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -22,88 +16,12 @@ const TaskInput: React.FC = () => {
   const [showEncouragement, setShowEncouragement] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState<'slow' | 'normal' | 'fast'>('normal');
   const [showSparkles, setShowSparkles] = useState(false);
-  const [lastKeyTime, setLastKeyTime] = useState(Date.now());
-  const [keystrokeCount, setKeystrokeCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (taskInput.trim() !== '') {
-      setShowCriticism(true);
-      triggerCriticism();
-      
-      // Shoot confetti on submit
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
-      // Show sparkles animation on submit
-      setShowSparkles(true);
-      setTimeout(() => setShowSparkles(false), 1000);
-      
-      setTimeout(() => {
-        setShowCriticism(false);
-        setShowEncouragement(true);
-      }, 3000);
-      
-      setTimeout(() => {
-        setShowEncouragement(false);
-        setStage('fakeChoice');
-      }, 6000);
-    }
+    // Non-functional
   };
-
-  const handleKeyPress = () => {
-    const currentTime = Date.now();
-    setLastKeyTime(currentTime);
-    setKeystrokeCount(prev => prev + 1);
-    
-    // Typing increases mom's anger slightly (she doesn't want you to be productive)
-    if (keystrokeCount % 10 === 0) {
-      // Fix: Instead of using a function, calculate the new value directly
-      const newAngerLevel = Math.min(100, momAngerLevel + 1);
-      setMomAngerLevel(newAngerLevel);
-    }
-  };
-
-  // Judge typing speed for extra psychological pressure - REVERSED as requested
-  useEffect(() => {
-    if (isInputFocused) {
-      const interval = setInterval(() => {
-        const currentTime = Date.now();
-        const timeSinceLastType = currentTime - lastKeyTime;
-        
-        if (timeSinceLastType > 3000) {
-          setTypingSpeed('fast'); // REVERSED: When typing slow, we say "type faster"
-          if (Math.random() > 0.7) {
-            calmMomDown(); // Occasionally calm mom down when not typing
-          }
-        } else if (timeSinceLastType < 500 && taskInput.length > 3) {
-          setTypingSpeed('slow'); // REVERSED: When typing fast, we say "slow down"
-          if (Math.random() > 0.8) {
-            // Fix: Instead of using a function, calculate the new value directly
-            const newAngerLevel = Math.min(100, momAngerLevel + 2);
-            setMomAngerLevel(newAngerLevel);
-          }
-        } else {
-          setTypingSpeed('normal');
-        }
-      }, 1000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [isInputFocused, lastKeyTime, taskInput, calmMomDown, setMomAngerLevel, momAngerLevel]);
-
-  useEffect(() => {
-    if (inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 1000);
-    }
-  }, []);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -120,7 +38,6 @@ const TaskInput: React.FC = () => {
                 onChange={(e) => setTaskInput(e.target.value)}
                 onFocus={() => setIsInputFocused(true)}
                 onBlur={() => setIsInputFocused(false)}
-                onKeyDown={handleKeyPress}
                 placeholder="Enter your task here..."
                 className={`neubrutalism-input ${isInputFocused ? 'animate-jitter' : ''}`}
               />
@@ -128,18 +45,15 @@ const TaskInput: React.FC = () => {
               {isInputFocused && typingSpeed === 'fast' && (
                 <div className="absolute right-[-60px] top-2">
                   <MomAvatar size="sm" message="Type faster!" />
-                  <FastForward className="w-5 h-5 text-momento-red absolute bottom-[-10px] right-0 animate-pulse" />
                 </div>
               )}
               
               {isInputFocused && typingSpeed === 'slow' && (
                 <div className="absolute right-[-60px] top-2">
                   <MomAvatar size="sm" message="Slow down, you'll make mistakes!" />
-                  <Rewind className="w-5 h-5 text-momento-blue absolute bottom-[-10px] right-0 animate-pulse" />
                 </div>
               )}
               
-              {/* Cool sparkles effect when submitting */}
               {showSparkles && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Sparkles size={50} className="text-momento-pink animate-spin" />

@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 import { audioManager } from '@/utils/audioManager';
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
@@ -11,43 +10,16 @@ const SoundControls: React.FC = () => {
   const [isSoundEffectsEnabled, setSoundEffectsEnabled] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  useEffect(() => {
-    // Initialize the component with the current state of audio manager
-    setIsMuted(audioManager.isMuted());
-    setSoundEffectsEnabled(audioManager.areSoundEffectsEnabled());
-    setIsPlaying(audioManager.isMusicPlaying());
-    
-    // Play a sound when the component mounts if sound effects are enabled
-    if (audioManager.areSoundEffectsEnabled()) {
-      audioManager.playSound('click');
-    }
-  }, []);
-  
   const handleToggleMute = () => {
-    const newMutedState = audioManager.toggleMute();
-    setIsMuted(newMutedState);
-    
-    // Play UI feedback sound if unmuting and sound effects are enabled
-    if (!newMutedState && audioManager.areSoundEffectsEnabled()) {
-      audioManager.playSound('click');
-    }
+    setIsMuted(!isMuted);
   };
   
   const handleToggleMusic = () => {
-    const isNowPlaying = audioManager.toggleBackgroundMusic();
-    setIsPlaying(isNowPlaying);
-    
-    // Play UI feedback sound if sound effects are enabled
-    if (!isMuted && audioManager.areSoundEffectsEnabled()) {
-      audioManager.playSound('click');
-    }
+    setIsPlaying(!isPlaying);
   };
   
   const handleToggleSoundEffects = () => {
-    const newSoundEffectsState = audioManager.toggleSoundEffects();
-    setSoundEffectsEnabled(newSoundEffectsState);
-    
-    // No sound feedback here since we're toggling sound effects themselves
+    setSoundEffectsEnabled(!isSoundEffectsEnabled);
   };
   
   return (

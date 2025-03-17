@@ -1,9 +1,5 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { AppStage, MomentoContextType, MomCriticism, SabotageEvent } from '@/types';
-import { toast } from '@/components/ui/use-toast';
-import { audioManager } from '@/utils/audioManager';
-import { useNavigate } from 'react-router-dom';
 
 const CRITICISMS: MomCriticism[] = [
   { text: "Ugh, this is so basic. You're better than this.", severity: 'mild' },
@@ -50,126 +46,33 @@ export const MomentoProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [criticisms] = useState<MomCriticism[]>(CRITICISMS);
   const [selectedCriticism, setSelectedCriticism] = useState<MomCriticism | null>(null);
   const [sabotageEvents, setSabotageEvents] = useState<SabotageEvent[]>(SABOTAGE_EVENTS);
-  const [momAngerLevel, setMomAngerLevel] = useState<number>(0); // Start with zero anger
+  const [momAngerLevel, setMomAngerLevel] = useState<number>(50); // Fixed at 50%
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
   const [isExploding, setIsExploding] = useState<boolean>(false);
-  const navigate = useNavigate();
 
+  // Non-functional placeholders for functions
   const triggerCriticism = () => {
-    const randomIndex = Math.floor(Math.random() * criticisms.length);
-    setSelectedCriticism(criticisms[randomIndex]);
-    
-    setTimeout(() => {
-      setTaskInput('');
-    }, 2500);
-    
-    // Increase mom's anger level with each criticism
-    setMomAngerLevel(prev => Math.min(100, prev + 10));
-    
-    // Play sound if effects are enabled
-    audioManager.playSound('sigh');
+    // Non-functional
   };
 
   const triggerRandomSabotage = () => {
-    const availableEvents = sabotageEvents.filter(event => !event.triggered);
-    
-    if (availableEvents.length === 0) {
-      setSabotageEvents(sabotageEvents.map(event => ({ ...event, triggered: false })));
-      return;
-    }
-    
-    const randomIndex = Math.floor(Math.random() * availableEvents.length);
-    const selectedEvent = availableEvents[randomIndex];
-    
-    setSabotageEvents(sabotageEvents.map(event => 
-      event.id === selectedEvent.id ? { ...event, triggered: true } : event
-    ));
-    
-    toast({
-      title: "Mom Says:",
-      description: selectedEvent.message,
-      duration: 5000,
-    });
-    
-    if (selectedEvent.type === 'jumpScare') {
-      document.body.classList.add('animate-shake');
-      setTimeout(() => {
-        document.body.classList.remove('animate-shake');
-      }, 500);
-      
-      // Play scary sound for jump scares
-      audioManager.playSound('angry');
-    } else {
-      // Play sabotage sound for other events
-      audioManager.playSound('sabotage');
-    }
-    
-    // Increase mom's anger level with each sabotage
-    setMomAngerLevel(prev => Math.min(100, prev + 5));
+    // Non-functional
   };
 
-  // Check if mom's mood has reached zero
-  useEffect(() => {
-    if (momAngerLevel >= 100 && !isExploding) {
-      setIsExploding(true);
-      
-      // Play explosion sound
-      audioManager.playSound('explosion');
-      
-      // Dramatic shaking effect
-      document.body.classList.add('animate-extreme-shake');
-      
-      // Navigate to crash page after a delay
-      setTimeout(() => {
-        document.body.classList.remove('animate-extreme-shake');
-        navigate('/mom-crashed');
-      }, 2500);
-    }
-  }, [momAngerLevel, isExploding, navigate]);
-
-  // Exit confirm functions
   const attemptToExit = () => {
-    setShowExitConfirm(true);
-    audioManager.playSound('error');
+    // Non-functional
   };
 
   const closeExitConfirm = () => {
-    setShowExitConfirm(false);
-    audioManager.playSound('click');
+    // Non-functional
   };
 
-  useEffect(() => {
-    // Reset mom's anger level on component mount
-    setMomAngerLevel(0);
-    setIsExploding(false);
-    
-    if (stage === 'welcome') {
-      // Reset mom's anger when returning to welcome screen
-      setMomAngerLevel(0);
-    }
-    
-    // Mom gets less angry over time when user is not doing anything
-    const calmDownInterval = setInterval(() => {
-      if (stage !== 'taskInput') {
-        calmMomDown();
-      }
-    }, 10000);
-    
-    return () => clearInterval(calmDownInterval);
-  }, [stage]);
-
   const resetApp = () => {
-    setStage('welcome');
-    setTaskInput('');
-    setSelectedCriticism(null);
-    setSabotageEvents(SABOTAGE_EVENTS);
-    setMomAngerLevel(0);
-    setIsExploding(false);
+    // Non-functional
   };
 
   const calmMomDown = () => {
-    // Used when user does something to appease mom
-    setMomAngerLevel(prev => Math.max(0, prev - 15));
+    // Non-functional
   };
 
   const value = {
