@@ -8,22 +8,9 @@ const CallMomPage: React.FC = () => {
     // Set the title when component mounts
     document.title = "Calling Mom - Momento";
     
-    // Add the ElevenLabs script dynamically when component mounts
-    const script = document.createElement('script');
-    script.src = 'https://elevenlabs.io/convai-widget/index.js';
-    script.async = true;
-    script.type = 'text/javascript';
-    document.body.appendChild(script);
-    
     return () => {
       // Reset title when component unmounts
       document.title = "Momento - The To-Do App That Judges You Like Your Mom";
-      
-      // Clean up the script when component unmounts
-      const existingScript = document.querySelector('script[src="https://elevenlabs.io/convai-widget/index.js"]');
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-      }
     };
   }, []);
 
@@ -56,7 +43,7 @@ const CallMomPage: React.FC = () => {
           </div>
           
           <div className="call-mom-container min-h-[400px] border-4 border-black relative overflow-hidden flex justify-center items-center p-4">
-            <elevenlabs-convai agent-id="4OTApQQqwhoTsoOgvsTx"></elevenlabs-convai>
+            <p className="text-xl font-bold text-center">Mom is currently unavailable for calls.</p>
           </div>
         </div>
       </div>
