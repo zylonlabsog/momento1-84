@@ -28,11 +28,7 @@ const MomAvatar: React.FC<MomAvatarProps> = ({
 
   return (
     <div className="flex flex-col items-center">
-      {message && (
-        <div className="mom-bubble mb-4 max-w-xs animate-popup">
-          <p className="font-bold text-black">{message}</p>
-        </div>
-      )}
+      {/* Message bubble removed */}
       
       <div 
         className={`${sizeClasses[size]} ${animation} rounded-full ${faceColor} border-4 border-black flex items-center justify-center overflow-hidden relative`}
